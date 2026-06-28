@@ -1,0 +1,3645 @@
+<!DOCTYPE html>
+<html lang="ru" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BloxDrop — Симулятор Кейсов Roblox</title>
+  
+  <!-- Google Fonts: Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS v3 CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            darkBg: '#0a0516',
+            cardBg: '#130a24',
+            panelBg: '#1b0f33',
+            borderPurple: '#341a5c',
+            neonPurple: '#a855f7',
+            neonCyan: '#06b6d4',
+            neonPink: '#ec4899',
+            robloxYellow: '#f59e0b',
+          },
+          fontFamily: {
+            sans: ['Outfit', 'sans-serif'],
+          },
+          animation: {
+            'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+            'float': 'float 3s ease-in-out infinite',
+            'glow-spin': 'glow-spin 1.5s linear infinite',
+            'vortex': 'vortex 1.2s cubic-bezier(0.4, 0, 0.2, 1) infinite',
+          },
+          keyframes: {
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-8px)' },
+            },
+            'glow-spin': {
+              '0%': { transform: 'rotate(0deg)' },
+              '100%': { transform: 'rotate(360deg)' },
+            },
+            vortex: {
+              '0%': { transform: 'rotate(0deg) scale(1)', opacity: '0.8' },
+              '50%': { transform: 'rotate(180deg) scale(1.15)', opacity: '1' },
+              '100%': { transform: 'rotate(360deg) scale(1)', opacity: '0.8' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* Custom Scrollbar Styles */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0a0516;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #341a5c;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a855f7;
+    }
+
+    /* Glassmorphism panel styling */
+    .glass-panel {
+      background: rgba(19, 10, 36, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(168, 85, 247, 0.15);
+    }
+    
+    .glass-panel-hover:hover {
+      border-color: rgba(168, 85, 247, 0.35);
+      box-shadow: 0 0 20px rgba(168, 85, 247, 0.15);
+    }
+
+    /* Rarity Glow Effects */
+    .glow-common {
+      box-shadow: 0 0 15px rgba(148, 163, 184, 0.1);
+    }
+    .glow-uncommon {
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.15);
+    }
+    .glow-rare {
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.2);
+    }
+    .glow-classified {
+      box-shadow: 0 0 25px rgba(236, 72, 153, 0.25);
+    }
+    .glow-legendary {
+      box-shadow: 0 0 30px rgba(245, 158, 11, 0.35);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    /* Sheen animation for Legendary / Mythical items */
+    .glow-legendary::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 30%;
+      height: 200%;
+      background: rgba(255, 255, 255, 0.13);
+      transform: rotate(30deg);
+      transition: none;
+      animation: sheen 4s infinite ease-in-out;
+    }
+
+    @keyframes sheen {
+      0% { left: -70%; }
+      15% { left: 120%; }
+      100% { left: 120%; }
+    }
+
+    /* Hide scrollbars for roulette and tabs */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+
+    /* Confetti particle style */
+    .particle {
+      position: absolute;
+      pointer-events: none;
+      border-radius: 50%;
+      z-index: 100;
+    }
+
+    /* Rainbow animations for Secret rarity */
+    @keyframes rainbow-text {
+      0%, 100% { color: #ff007f; }
+      20% { color: #ffaa00; }
+      40% { color: #00ff66; }
+      60% { color: #00ffff; }
+      80% { color: #7f00ff; }
+    }
+    @keyframes rainbow-border {
+      0%, 100% { border-color: #ff007f; }
+      20% { border-color: #ffaa00; }
+      40% { border-color: #00ff66; }
+      60% { border-color: #00ffff; }
+      80% { border-color: #7f00ff; }
+    }
+    @keyframes rainbow-glow {
+      0%, 100% { box-shadow: 0 0 15px rgba(255, 0, 127, 0.4); }
+      20% { box-shadow: 0 0 15px rgba(255, 170, 0, 0.4); }
+      40% { box-shadow: 0 0 15px rgba(0, 255, 102, 0.4); }
+      60% { box-shadow: 0 0 15px rgba(0, 255, 255, 0.4); }
+      80% { box-shadow: 0 0 15px rgba(127, 0, 255, 0.4); }
+    }
+    
+    .text-rainbow {
+      animation: rainbow-text 6s infinite linear;
+      font-weight: 900;
+    }
+    .border-rainbow-border {
+      animation: rainbow-border 6s infinite linear;
+    }
+    .glow-secret {
+      animation: rainbow-border 6s infinite linear, rainbow-glow 6s infinite linear;
+    }
+  </style>
+</head>
+<body class="bg-darkBg text-gray-100 font-sans h-full flex flex-col overflow-hidden selection:bg-neonPurple selection:text-white">
+
+  <!-- BACKGROUND DECORATIONS -->
+  <div class="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+    <div class="absolute -top-[30%] -left-[20%] w-[70%] h-[70%] bg-neonPurple/10 rounded-full blur-[160px] animate-pulse-slow"></div>
+    <div class="absolute -bottom-[20%] -right-[10%] w-[60%] h-[60%] bg-neonCyan/5 rounded-full blur-[140px] animate-pulse-slow"></div>
+  </div>
+
+  <!-- MAIN APP CONTAINER -->
+  <div class="flex flex-col md:flex-row h-full w-full z-10 relative overflow-hidden">
+    
+    <!-- LEFT SIDEBAR (Desktop) -->
+    <aside class="hidden md:flex flex-col w-64 shrink-0 glass-panel border-r border-borderPurple/50 p-6 z-20">
+      <!-- LOGO -->
+      <div class="flex items-center space-x-3 mb-8 cursor-pointer" onclick="switchTab('cases')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-neonPurple to-neonPink flex items-center justify-center shadow-lg shadow-neonPurple/25">
+          <!-- 3D Box Icon -->
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+          </svg>
+        </div>
+        <div>
+          <span class="text-xl font-extrabold tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-neonPink">BLOXDROP</span>
+          <span class="block text-[10px] uppercase tracking-widest text-neonCyan font-bold">CASE SIMULATOR</span>
+        </div>
+      </div>
+
+      <!-- PROFILE CARD -->
+      <div class="bg-panelBg/80 border border-borderPurple/50 rounded-2xl p-4 mb-6 relative overflow-hidden">
+        <div class="flex items-center space-x-3">
+          <!-- SVG Robloxian Avatar -->
+          <div id="avatar-container" class="w-12 h-12 rounded-xl bg-gradient-to-br from-neonPurple/30 to-neonPink/30 border border-neonPurple/50 p-1 flex items-center justify-center relative cursor-pointer group" onclick="regenerateAvatar()">
+            <svg id="profile-avatar" class="w-full h-full text-white" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="25" y="25" width="50" height="50" rx="10" fill="#facc15"/>
+              <rect x="37" y="40" width="6" height="8" rx="3" fill="#000"/>
+              <rect x="57" y="40" width="6" height="8" rx="3" fill="#000"/>
+              <path d="M40 60 C 45 66, 55 66, 60 60" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+              <path d="M20 32 L80 32 L75 22 L25 22 Z" fill="#ec4899"/>
+              <rect x="42" y="16" width="16" height="6" fill="#a855f7"/>
+            </svg>
+            <div class="absolute inset-0 bg-black/60 rounded-xl opacity-0 group-hover:opacity-100 flex items-center justify-center text-[8px] text-white font-bold transition-opacity">КЛИК</div>
+          </div>
+          <div class="min-w-0 flex-1">
+            <div class="flex items-center space-x-1">
+              <span id="username" class="font-bold text-sm truncate text-white">Robloxian</span>
+              <button onclick="editUsername()" class="text-gray-400 hover:text-white transition">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+              </button>
+            </div>
+            <span class="text-xs text-gray-400">Статус: Игрок</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NAVIGATION -->
+      <nav class="flex-1 space-y-2">
+        <button onclick="switchTab('cases')" id="nav-desktop-cases" class="nav-btn w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 bg-neonPurple text-white shadow-lg shadow-neonPurple/20">
+          <span class="text-lg">📦</span>
+          <span>Кейсы</span>
+        </button>
+        <button onclick="switchTab('bonuses')" id="nav-desktop-bonuses" class="nav-btn w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 text-gray-400 hover:bg-panelBg/50 hover:text-white">
+          <span class="text-lg">🎁</span>
+          <span>Бонусы</span>
+        </button>
+        <button onclick="switchTab('upgrader')" id="nav-desktop-upgrader" class="nav-btn w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 text-gray-400 hover:bg-panelBg/50 hover:text-white">
+          <span class="text-lg">⚡</span>
+          <span>Апгрейд</span>
+        </button>
+        <button onclick="switchTab('contracts')" id="nav-desktop-contracts" class="nav-btn w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 text-gray-400 hover:bg-panelBg/50 hover:text-white">
+          <span class="text-lg">🌀</span>
+          <span>Контракты</span>
+        </button>
+        <button onclick="switchTab('inventory')" id="nav-desktop-inventory" class="nav-btn w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 text-gray-400 hover:bg-panelBg/50 hover:text-white">
+          <span class="text-lg">🎒</span>
+          <span>Инвентарь</span>
+        </button>
+      </nav>
+
+      <!-- AUDIO AND LOGOUT / RESET -->
+      <div class="pt-6 border-t border-borderPurple/50 space-y-4">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-gray-400 font-medium">Эффекты</span>
+          <button id="sound-toggle-btn" onclick="toggleSound()" class="px-3 py-1.5 rounded-lg text-xs font-semibold bg-neonPurple/20 text-neonPurple border border-neonPurple/30 hover:bg-neonPurple/30 transition flex items-center space-x-1">
+            <span id="sound-icon">🔊</span>
+            <span id="sound-text">Вкл</span>
+          </button>
+        </div>
+        <button onclick="resetData()" class="w-full px-4 py-2 rounded-xl text-xs font-bold bg-red-950/40 text-red-400 border border-red-900/30 hover:bg-red-950/60 hover:border-red-500/40 transition">
+          Сбросить прогресс
+        </button>
+        <!-- Subtle Admin Link in Footer -->
+        <div class="text-[10px] text-gray-600 text-center pt-2">
+          <span>© 2026 BloxDrop</span>
+          <span id="admin-wrench-btn" onclick="triggerAdminAccess()" class="cursor-pointer hover:text-gray-400 ml-1 hidden" title="Открыть Админ-Панель (Ctrl+Shift+A)">🔧</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN BODY CONTENT -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden">
+      
+      <!-- LIVE DROPS STRIP -->
+      <div class="w-full h-14 bg-darkBg/95 border-b border-borderPurple/40 overflow-hidden relative z-40 shrink-0 flex items-center">
+        <div class="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-darkBg to-transparent z-10 pointer-events-none"></div>
+        <div class="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-darkBg to-transparent z-10 pointer-events-none"></div>
+        
+        <div class="flex items-center space-x-2 px-4 overflow-x-auto no-scrollbar h-full w-full py-1.5" id="live-drops-container">
+          <!-- Items added dynamically -->
+        </div>
+      </div>
+
+      <!-- HEADER (Global Top Bar) -->
+      <header class="h-18 glass-panel border-b border-borderPurple/50 px-4 md:px-8 flex items-center justify-between z-20 shrink-0 py-3">
+        
+        <!-- MOBILE LOGO -->
+        <div class="flex items-center space-x-2 md:hidden">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-neonPurple to-neonPink flex items-center justify-center shadow-lg shadow-neonPurple/25">
+            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+            </svg>
+          </div>
+          <span class="text-lg font-black tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-white to-neonPink">BLOXDROP</span>
+        </div>
+
+        <!-- BALANCE AND DAILY BONUS -->
+        <div class="flex items-center space-x-3 ml-auto md:ml-0">
+          <!-- BALANCE DISPLAY -->
+          <div class="bg-panelBg/80 border border-borderPurple/50 rounded-2xl px-4 py-2 flex items-center space-x-2.5 shadow-inner">
+            <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-robloxYellow to-yellow-300 flex items-center justify-center shadow shadow-robloxYellow/50 font-black text-darkBg text-xs select-none">
+              R$
+            </div>
+            <div class="flex flex-col">
+              <span class="text-[10px] text-gray-400 font-bold uppercase tracking-wider leading-none">Баланс</span>
+              <span id="balance-counter" class="text-sm md:text-base font-extrabold text-white tracking-wide">1,000</span>
+            </div>
+          </div>
+
+          <!-- BONUSES HEADER BUTTON -->
+          <button onclick="switchTab('bonuses')" class="bg-gradient-to-r from-neonPurple to-neonPink hover:from-neonPurple hover:to-neonPink/90 text-white font-bold text-xs md:text-sm px-4 py-2 rounded-2xl shadow-lg shadow-neonPurple/25 hover:shadow-neonPurple/45 hover:scale-105 active:scale-95 transition-all duration-200 flex items-center space-x-2 border border-white/10 h-11">
+            <span>🎁</span>
+            <span>Бонусы</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- PAGE MAIN WRAPPER (Scrollable Area) -->
+      <main class="flex-1 overflow-y-auto p-4 md:p-8 pb-24 md:pb-8">
+        
+        <!-- ==================== CASES TAB ==================== -->
+        <section id="tab-cases" class="tab-content block space-y-10">
+          <div class="flex flex-col space-y-2">
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center space-x-2">
+              <span>📦</span> <span>Кейсы с Дропом Roblox</span>
+            </h1>
+            <p class="text-sm text-gray-400 max-w-xl">Выбирай кейс, испытывай свою удачу и собирай редчайшие лимитированные предметы. Все предметы можно продать или использовать в крафте!</p>
+          </div>
+
+          <!-- Normal Cases Section -->
+          <div class="space-y-4">
+            <h2 class="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center space-x-2 border-b border-borderPurple/20 pb-2">
+              <span>🎮</span> <span>Обычные режимы</span>
+            </h2>
+            <div id="cases-grid-normal" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Premium Cases Section -->
+          <div class="space-y-4">
+            <h2 class="text-sm font-black text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-amber-300 to-yellow-500 uppercase tracking-widest flex items-center space-x-2 border-b border-yellow-500/20 pb-2">
+              <span>👑</span> <span>Премиум-кейсы</span>
+            </h2>
+            <div id="cases-grid-premium" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== UPGRADER TAB ==================== -->
+        <section id="tab-upgrader" class="tab-content hidden space-y-8">
+          <div class="flex flex-col space-y-2">
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center space-x-2">
+              <span>⚡</span> <span>Апгрейд (Upgrades)</span>
+            </h1>
+            <p class="text-sm text-gray-400 max-w-xl">Попробуй превратить дешевый предмет в дорогую легенду! Успех зависит от разницы в цене. В случае неудачи твой предмет сгорит навсегда.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
+            
+            <!-- LEFT SLOT: OWNED ITEMS -->
+            <div class="lg:col-span-4 glass-panel rounded-3xl p-6 flex flex-col items-center justify-between text-center border border-borderPurple/50 min-h-[380px]">
+              <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Предметы для ставки</span>
+              
+              <div id="upgrader-source-card" onclick="openInventorySelector()" class="w-full flex-1 flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-borderPurple hover:border-neonPurple/50 rounded-2xl p-4 transition-all duration-200 group bg-panelBg/20 hover:bg-panelBg/40 overflow-hidden">
+                <div class="text-4xl mb-4 group-hover:scale-110 transition duration-200 select-none">🎒</div>
+                <span class="text-sm font-bold text-white group-hover:text-neonPurple transition">Выбрать из инвентаря</span>
+                <span class="text-xs text-gray-500 mt-1">Кликни, чтобы выбрать предметы</span>
+              </div>
+            </div>
+
+            <!-- CENTER WORKSPACE: SHANCE & FORGING WHEEL -->
+            <div class="lg:col-span-4 glass-panel rounded-3xl p-6 flex flex-col items-center justify-center text-center border border-borderPurple/50 min-h-[380px] relative overflow-hidden">
+              <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-4">Шанс успеха</span>
+              
+              <!-- Fixed Forging Wheel Container -->
+              <div class="relative w-56 h-56 flex items-center justify-center mb-6">
+                <!-- Static Glowing Outer Ring with Conic Gradient -->
+                <div id="upgrader-wheel-outer" class="relative w-48 h-48 rounded-full p-1 shadow-[0_0_20px_rgba(16,185,129,0.15)] flex items-center justify-center transition-all duration-300" style="background: conic-gradient(#10b981 0% 0%, #7f1d1d 0% 100%);">
+                  <!-- Inner Dark Wheel (covering the center, leaving a thin 4px border) -->
+                  <div class="w-full h-full rounded-full bg-cardBg relative flex items-center justify-center overflow-hidden">
+                    <!-- Static percentage text inside -->
+                    <div class="flex flex-col items-center justify-center z-20">
+                      <span id="upgrader-chance-text" class="text-2xl font-extrabold text-white">0%</span>
+                      <span class="text-[9px] text-gray-400 font-bold uppercase tracking-wider">Макс: 75%</span>
+                    </div>
+                    
+                    <!-- Pinned Arrow pointing to 12 o'clock that rotates -->
+                    <div id="upgrader-arrow-wrapper" class="absolute inset-0 z-10 transition-transform duration-[4000ms] ease-out" style="transform: rotate(0deg); transform-origin: center center;">
+                      <!-- Arrow shaft and head -->
+                      <div class="absolute top-2 left-1/2 -translate-x-1/2 w-2.5 h-22 bg-gradient-to-b from-neonPink to-neonPurple rounded-full shadow-[0_0_8px_rgba(236,72,153,0.8)] flex items-start justify-center">
+                        <!-- Arrow Head pointing OUTWARD (towards the border) -->
+                        <div class="w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[10px] border-b-white -mt-1 shadow-[0_0_5px_white]"></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Warning Text -->
+              <div id="upgrader-warning" class="text-[10px] font-bold text-red-400 mb-4 hidden">Целевой предмет должен быть дороже вашей ставки!</div>
+
+              <!-- Action Button -->
+              <button id="upgrade-action-btn" onclick="startUpgrade()" disabled class="w-full py-4 bg-gradient-to-r from-neonPurple to-neonPink disabled:from-purple-950 disabled:to-fuchsia-950 disabled:text-gray-500 disabled:border-transparent disabled:shadow-none text-white font-black text-sm rounded-2xl shadow-lg shadow-neonPurple/20 hover:shadow-neonPurple/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                Запустить улучшение
+              </button>
+            </div>
+
+            <!-- RIGHT SLOT: TARGET ITEM -->
+            <div class="lg:col-span-4 glass-panel rounded-3xl p-6 flex flex-col items-center justify-between text-center border border-borderPurple/50 min-h-[380px]">
+              <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-2">Желаемый предмет</span>
+              
+              <div id="upgrader-target-card" onclick="openTargetSelector()" class="w-full flex-1 flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-borderPurple hover:border-neonCyan/50 rounded-2xl p-6 transition-all duration-200 group bg-panelBg/20 hover:bg-panelBg/40">
+                <div class="text-4xl mb-4 group-hover:scale-110 transition duration-200 select-none">✨</div>
+                <span class="text-sm font-bold text-white group-hover:text-neonCyan transition">Выбрать цель</span>
+                <span class="text-xs text-gray-500 mt-1">Кликни, чтобы выбрать цель</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==================== CONTRACTS TAB ==================== -->
+        <section id="tab-contracts" class="tab-content hidden space-y-8">
+          <div class="flex flex-col space-y-2">
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center space-x-2">
+              <span>🌀</span> <span>Контракты (Contracts)</span>
+            </h1>
+            <p class="text-sm text-gray-400 max-w-xl">Объедини от 3 до 10 предметов в один новый предмет со случайной стоимостью от 80% до 150% от их суммарной цены.</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+            
+            <!-- CONTROLLER / SELECTION INFO -->
+            <div class="lg:col-span-5 glass-panel rounded-3xl p-6 border border-borderPurple/50 space-y-6">
+              <h3 class="text-lg font-extrabold text-white flex items-center space-x-2">
+                <span>📑</span> <span>Параметры Контракта</span>
+              </h3>
+              
+              <div class="space-y-4">
+                <!-- Status Row -->
+                <div class="flex justify-between items-center py-3 px-4 bg-panelBg/50 rounded-2xl border border-borderPurple/30">
+                  <span class="text-xs text-gray-400 font-bold uppercase">Выбрано предметов:</span>
+                  <span id="contracts-count" class="text-sm font-black text-white">0 / 10</span>
+                </div>
+                <!-- Min / Max range -->
+                <div class="flex justify-between items-center py-3 px-4 bg-panelBg/50 rounded-2xl border border-borderPurple/30">
+                  <span class="text-xs text-gray-400 font-bold uppercase font-medium">Общая стоимость:</span>
+                  <span id="contracts-total-value" class="text-sm font-black text-neonCyan">0 B$</span>
+                </div>
+                <!-- Expected outputs -->
+                <div class="py-4 px-4 bg-panelBg/80 rounded-2xl border border-borderPurple/45 space-y-3">
+                  <span class="text-xs text-gray-400 font-bold uppercase block">Ожидаемый дроп:</span>
+                  <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-darkBg/50 p-2.5 rounded-xl border border-borderPurple/20 text-center">
+                      <span class="block text-[10px] text-gray-500 font-bold">Минимум (80%)</span>
+                      <span id="contracts-min-val" class="text-xs font-extrabold text-red-400">0 B$</span>
+                    </div>
+                    <div class="bg-darkBg/50 p-2.5 rounded-xl border border-borderPurple/20 text-center">
+                      <span class="block text-[10px] text-gray-500 font-bold">Максимум (150%)</span>
+                      <span id="contracts-max-val" class="text-xs font-extrabold text-green-400">0 B$</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fuse Button -->
+              <button id="contracts-fuse-btn" onclick="startFusion()" disabled class="w-full py-4 bg-gradient-to-r from-neonPurple to-neonPink disabled:from-purple-950 disabled:to-fuchsia-950 disabled:text-gray-500 disabled:border-transparent disabled:shadow-none text-white font-black text-sm rounded-2xl shadow-lg shadow-neonPurple/20 hover:shadow-neonPurple/40 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                Запустить слияние
+              </button>
+            </div>
+
+            <!-- SELECTION GRID FROM INVENTORY -->
+            <div class="lg:col-span-7 glass-panel rounded-3xl p-6 border border-borderPurple/50 space-y-4">
+              <div class="flex justify-between items-center">
+                <h3 class="text-lg font-extrabold text-white">Выбери предметы (3-10 шт.)</h3>
+                <button onclick="clearContractSelection()" class="text-xs text-neonPink font-bold hover:underline transition">Сбросить выбор</button>
+              </div>
+
+              <!-- Inventory list for contract -->
+              <div id="contract-inventory-grid" class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[480px] overflow-y-auto pr-2">
+                <!-- Dynamically filled -->
+                <div class="col-span-full py-12 text-center text-gray-500 text-sm">В инвентаре пусто</div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- ==================== BONUSES TAB ==================== -->
+        <section id="tab-bonuses" class="tab-content hidden space-y-8">
+          <div class="flex flex-col space-y-2">
+            <h1 class="text-2xl md:text-3xl font-extrabold tracking-tight text-white flex items-center space-x-2">
+              <span>🎁</span> <span>Бесплатные Бонусы</span>
+            </h1>
+            <p class="text-sm text-gray-400 max-w-xl">Забирай ежедневные награды и открывай бесплатные кейсы каждый день, чтобы увеличить свой баланс и расширить инвентарь!</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
+            
+            <!-- DAILY REWARD CARD -->
+            <div class="glass-panel rounded-3xl p-6 flex flex-col items-center justify-between text-center border border-borderPurple/50 min-h-[350px]">
+              <div>
+                <div class="text-5xl mb-4 animate-float select-none">🪙</div>
+                <h3 class="text-xl font-black text-white mb-2">Ежедневная награда</h3>
+                <p class="text-xs text-gray-400 max-w-xs mx-auto mb-6">Получай бесплатные +100 Баксов каждые 24 часа просто за посещение нашего сайта!</p>
+              </div>
+
+              <div class="w-full space-y-3">
+                <button id="bonus-daily-claim-btn" onclick="claimDailyBonusReward()" class="w-full py-4 bg-gradient-to-r from-neonPurple to-neonPink text-white font-black text-sm rounded-2xl shadow-lg shadow-neonPurple/25 hover:shadow-neonPurple/45 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                  Забрать +100 Баксов
+                </button>
+                <div id="bonus-daily-timer" class="text-xs font-mono font-bold text-gray-500 hidden">До следующей награды: 24:00:00</div>
+              </div>
+            </div>
+
+            <!-- DAILY FREE CASE CARD -->
+            <div class="glass-panel rounded-3xl p-6 flex flex-col items-center justify-between text-center border border-borderPurple/50 min-h-[350px]">
+              <div>
+                <div class="text-5xl mb-4 animate-float select-none">📦</div>
+                <h3 class="text-xl font-black text-white mb-2">Бесплатный кейс</h3>
+                <p class="text-xs text-gray-400 max-w-xs mx-auto mb-6">Испытай удачу в бесплатном ежедневном кейсе с ценными призами из разных режимов Roblox!</p>
+              </div>
+
+              <div class="w-full space-y-3">
+                <!-- Mini Case Showcase -->
+                <div class="p-3 bg-panelBg/40 border border-borderPurple/30 rounded-2xl mb-2 flex items-center justify-around">
+                  <div class="text-center">
+                    <div class="text-xl">🌰</div>
+                    <div class="text-[8px] text-gray-500 font-bold uppercase mt-0.5">50%</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-xl">🐜</div>
+                    <div class="text-[8px] text-gray-500 font-bold uppercase mt-0.5">30%</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-xl">🔪</div>
+                    <div class="text-[8px] text-gray-500 font-bold uppercase mt-0.5">18%</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-xl">🎣</div>
+                    <div class="text-[8px] text-gray-500 font-bold uppercase mt-0.5">1.5%</div>
+                  </div>
+                  <div class="text-center">
+                    <div class="text-xl">⚔️</div>
+                    <div class="text-[8px] text-gray-500 font-bold uppercase mt-0.5">0.5%</div>
+                  </div>
+                </div>
+
+                <button id="bonus-case-claim-btn" onclick="openFreeDailyCase()" class="w-full py-4 bg-gradient-to-r from-neonCyan to-blue-500 text-white font-black text-sm rounded-2xl shadow-lg shadow-neonCyan/25 hover:shadow-neonCyan/45 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200">
+                  Открыть бесплатно
+                </button>
+                <div id="bonus-case-timer" class="text-xs font-mono font-bold text-gray-500 hidden">До следующего открытия: 24:00:00</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- ROULETTE SECTION (Only visible during free case opening) -->
+          <div id="free-case-roulette-section" class="glass-panel rounded-3xl p-6 border border-borderPurple/50 hidden space-y-6">
+            <h3 class="text-base font-black text-white text-center uppercase tracking-widest">Прокрутка бесплатного кейса</h3>
+            
+            <div class="w-full h-28 bg-darkBg/90 border border-borderPurple/50 rounded-2xl relative overflow-hidden flex items-center">
+              <!-- Center red indicator line -->
+              <div class="absolute left-1/2 top-0 bottom-0 w-0.5 bg-neonPink z-10 shadow-[0_0_8px_rgba(236,72,153,0.8)] -translate-x-1/2"></div>
+              
+              <!-- Roulette strip -->
+              <div class="flex items-center space-x-2 px-2 h-full no-scrollbar" id="free-case-roulette-strip" style="transform: translateX(0px);">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ==================== INVENTORY TAB ==================== -->
+        <section id="tab-inventory" class="tab-content hidden space-y-8">
+          
+          <!-- INVENTORY STATS PANEL -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+            
+            <div class="glass-panel rounded-2xl p-4 border border-borderPurple/50">
+              <span class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Предметов всего</span>
+              <span id="stats-inventory-count" class="text-xl md:text-2xl font-black text-white">0</span>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-4 border border-borderPurple/50">
+              <span class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Ценность инвентаря</span>
+              <span id="stats-inventory-value" class="text-xl md:text-2xl font-black text-neonCyan">0 B$</span>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-4 border border-borderPurple/50">
+              <span class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Открыто кейсов</span>
+              <span id="stats-total-cases" class="text-xl md:text-2xl font-black text-white">0</span>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-4 border border-borderPurple/50">
+              <span class="block text-[10px] font-bold text-gray-500 uppercase tracking-wider mb-1">Апгрейды (Успех)</span>
+              <span id="stats-upgrade-winrate" class="text-xl md:text-2xl font-black text-neonPink">0%</span>
+            </div>
+
+          </div>
+
+          <!-- FILTERS AND SORTING -->
+          <div class="glass-panel rounded-3xl p-5 border border-borderPurple/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div id="inventory-filters-container" class="flex flex-wrap gap-2">
+              <!-- Dynamically populated -->
+            </div>
+
+            <div class="flex items-center space-x-3">
+              <select id="inventory-sort-select" onchange="sortInventory()" class="bg-panelBg border border-borderPurple/60 rounded-xl px-3 py-2 text-xs font-semibold text-gray-300 focus:outline-none focus:border-neonPurple cursor-pointer">
+                <option value="price-desc">Сначала дорогие</option>
+                <option value="price-asc">Сначала дешевые</option>
+                <option value="rarity-desc">По редкости (Высок.)</option>
+              </select>
+
+              <button onclick="sellAllItems()" class="px-4 py-2 rounded-xl text-xs font-bold bg-red-950/40 hover:bg-red-950/60 text-red-400 border border-red-900/30 hover:border-red-500/40 transition">
+                Продать все предметы
+              </button>
+            </div>
+          </div>
+
+          <!-- INVENTORY ITEMS GRID -->
+          <div id="inventory-grid" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4">
+            <!-- Dynamically populated -->
+            <div class="col-span-full py-20 text-center text-gray-500 text-sm">Твой инвентарь пуст. Перейди в раздел Кейсы, чтобы открыть свой первый кейс!</div>
+          </div>
+
+        </section>
+
+      </main>
+
+      <!-- BOTTOM NAVIGATION BAR (Mobile Only) -->
+      <nav class="md:hidden fixed bottom-0 left-0 right-0 h-16 bg-darkBg/90 backdrop-blur-md border-t border-borderPurple/50 flex items-center justify-around z-30 px-2">
+        <button onclick="switchTab('cases')" class="mobile-nav-btn flex flex-col items-center justify-center text-neonPurple transition-all">
+          <span class="text-lg">📦</span>
+          <span class="text-[9px] mt-0.5 font-bold uppercase tracking-wider">Кейсы</span>
+        </button>
+        <button onclick="switchTab('bonuses')" class="mobile-nav-btn flex flex-col items-center justify-center text-gray-500 transition-all">
+          <span class="text-lg">🎁</span>
+          <span class="text-[9px] mt-0.5 font-bold uppercase tracking-wider">Бонусы</span>
+        </button>
+        <button onclick="switchTab('upgrader')" class="mobile-nav-btn flex flex-col items-center justify-center text-gray-500 transition-all">
+          <span class="text-lg">⚡</span>
+          <span class="text-[9px] mt-0.5 font-bold uppercase tracking-wider">Апгрейд</span>
+        </button>
+        <button onclick="switchTab('contracts')" class="mobile-nav-btn flex flex-col items-center justify-center text-gray-500 transition-all">
+          <span class="text-lg">🌀</span>
+          <span class="text-[9px] mt-0.5 font-bold uppercase tracking-wider">Контракты</span>
+        </button>
+        <button onclick="switchTab('inventory')" class="mobile-nav-btn flex flex-col items-center justify-center text-gray-500 transition-all">
+          <span class="text-lg">🎒</span>
+          <span class="text-[9px] mt-0.5 font-bold uppercase tracking-wider">Инвентарь</span>
+        </button>
+      </nav>
+
+    </div>
+
+  </div>
+
+  <!-- ==================== MODALS ==================== -->
+  
+  <!-- 1. CASE OPENING MODAL -->
+  <div id="case-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cardBg border border-borderPurple/70 rounded-3xl w-full max-w-2xl overflow-hidden shadow-2xl relative flex flex-col">
+      
+      <!-- Modal Header -->
+      <div class="p-5 border-b border-borderPurple/50 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] text-gray-400 font-bold uppercase tracking-widest block">ОТКРЫТИЕ КЕЙСА</span>
+          <h2 id="case-modal-title" class="text-lg font-black text-white">Grow a Garden</h2>
+        </div>
+        <button onclick="closeCaseModal()" class="text-gray-400 hover:text-white transition p-1 bg-panelBg rounded-lg border border-borderPurple/30">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-6 flex flex-col items-center space-y-6">
+        
+        <!-- Roulette Tape Container -->
+        <div class="w-full relative bg-darkBg border border-borderPurple/50 rounded-2xl py-4 overflow-hidden shadow-inner flex items-center">
+          
+          <!-- Central Red Line indicator -->
+          <div class="absolute left-1/2 top-0 bottom-0 w-1 bg-gradient-to-b from-neonPurple via-neonPink to-neonPurple z-20 -translate-x-1/2 shadow-[0_0_10px_rgba(236,72,153,0.8)]"></div>
+          
+          <!-- Slide strip -->
+          <div id="roulette-strip" class="flex items-center space-x-2 px-2 transition-transform duration-[4000ms] ease-out no-scrollbar" style="transform: translateX(0px);">
+            <!-- Items filled dynamically on spin initiation -->
+          </div>
+        </div>
+
+        <!-- Spin Customization Toggles -->
+        <div class="flex items-center space-x-6">
+          <label class="flex items-center space-x-2.5 cursor-pointer group">
+            <input type="checkbox" id="fast-open-checkbox" class="w-4 h-4 rounded border-borderPurple bg-panelBg text-neonPurple focus:ring-0 focus:ring-offset-0 cursor-pointer">
+            <span class="text-xs font-semibold text-gray-400 group-hover:text-white transition">Быстрое открытие</span>
+          </label>
+        </div>
+
+        <!-- Price & Spin Button -->
+        <button id="spin-button" onclick="startSpin()" class="px-10 py-4 bg-gradient-to-r from-neonPurple to-neonPink hover:scale-105 active:scale-95 text-white font-black text-base rounded-2xl shadow-lg shadow-neonPurple/25 transition-all duration-200 flex items-center space-x-2 border border-white/10">
+          <span>Открыть за</span>
+          <span id="case-modal-price" class="px-2 py-0.5 bg-black/30 rounded-lg text-sm text-robloxYellow">30 B$</span>
+        </button>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. WIN POPUP OVERLAY -->
+  <div id="win-modal" class="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] hidden flex items-center justify-center p-4">
+    <!-- Firework Particles Canvas -->
+    <div id="win-particles-container" class="absolute inset-0 pointer-events-none"></div>
+    
+    <div class="bg-gradient-to-b from-panelBg to-darkBg border border-borderPurple/70 rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl relative z-10 scale-90 opacity-0 transition-all duration-300" id="win-modal-content">
+      <span class="text-[10px] text-neonPurple font-bold uppercase tracking-widest block mb-1">ПОЗДРАВЛЯЕМ!</span>
+      <span class="text-xs text-gray-400 block mb-6">Ты выиграл предмет из кейса</span>
+
+      <!-- Win Item Card -->
+      <div id="win-item-card" class="bg-darkBg border border-borderPurple/50 rounded-2xl p-6 mb-6 inline-flex flex-col items-center justify-center w-full max-w-[200px] aspect-square shadow-2xl relative overflow-hidden">
+        <div id="win-item-icon" class="text-6xl mb-4 animate-float">🌱</div>
+        <div id="win-item-rarity" class="px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider mb-2 bg-green-500/20 text-green-400 border border-green-500/30">ОБЫЧНЫЙ</div>
+        <h4 id="win-item-name" class="font-extrabold text-white text-base truncate max-w-full">Семена</h4>
+      </div>
+
+      <div class="text-xs text-gray-400 mb-6">
+        Стоимость предмета: <span id="win-item-price" class="font-extrabold text-neonCyan">10 B$</span>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="space-y-2.5">
+        <button id="win-modal-sell-btn" onclick="sellWonItem()" class="w-full py-3 bg-panelBg border border-borderPurple/60 hover:bg-panelBg/70 text-gray-300 font-bold text-xs rounded-xl transition">
+          Продать за <span id="win-sell-price" class="text-robloxYellow">10 B$</span>
+        </button>
+        <button onclick="keepWonItem()" class="w-full py-3.5 bg-gradient-to-r from-neonPurple to-neonPink hover:from-neonPurple hover:to-neonPink/90 text-white font-black text-xs rounded-xl shadow-lg shadow-neonPurple/20 transition">
+          Оставить в инвентаре
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. INVENTORY SELECTOR MODAL (For Upgrader) -->
+  <div id="inv-selector-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cardBg border border-borderPurple/70 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl relative flex flex-col max-h-[85vh]">
+      
+      <div class="p-5 border-b border-borderPurple/50 flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-black text-white">Выбери предметы для ставки</h2>
+          <p class="text-[10px] text-gray-400 font-semibold mt-0.5">Выбрано: <span id="inv-selector-count" class="text-neonPurple">0</span> шт. на сумму <span id="inv-selector-total" class="text-neonCyan">0 B$</span></p>
+        </div>
+        <button onclick="closeInventorySelector()" class="text-gray-400 hover:text-white transition p-1 bg-panelBg rounded-lg border border-borderPurple/30">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div id="inv-selector-grid" class="p-6 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
+        <!-- Filled dynamically -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-borderPurple/50 bg-panelBg/20 flex justify-end">
+        <button onclick="closeInventorySelector()" class="px-6 py-2.5 bg-gradient-to-r from-neonPurple to-neonPink text-white font-black text-xs rounded-xl shadow-lg hover:scale-105 transition duration-200">
+          Готово
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. TARGET ITEM SELECTOR MODAL (For Upgrader) -->
+  <div id="target-selector-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-cardBg border border-borderPurple/70 rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl relative flex flex-col max-h-[85vh]">
+      
+      <div class="p-5 border-b border-borderPurple/50 flex items-center justify-between">
+        <h2 class="text-lg font-black text-white">Выбери целевой предмет</h2>
+        <button onclick="closeTargetSelector()" class="text-gray-400 hover:text-white transition p-1 bg-panelBg rounded-lg border border-borderPurple/30">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div id="target-selector-grid" class="p-6 overflow-y-auto grid grid-cols-2 sm:grid-cols-3 gap-3 flex-1">
+        <!-- Filled dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. ADMIN AUTHENTICATION MODAL -->
+  <div id="admin-auth-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-xs overflow-hidden shadow-2xl relative flex flex-col text-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center space-x-2">
+          <span class="text-sm">🔒</span>
+          <h2 class="text-xs font-black tracking-widest text-slate-300 uppercase">Авторизация Админа</h2>
+        </div>
+        <button onclick="closeAdminAuthModal()" class="text-slate-400 hover:text-white transition p-1.5 bg-slate-800 rounded-lg border border-slate-700">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4 bg-slate-900 text-xs">
+        <div class="space-y-2">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Введите пароль:</label>
+          <input type="password" id="admin-auth-password" placeholder="Пароль" onkeydown="if(event.key==='Enter') submitAdminPassword()" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-slate-700 font-mono text-center">
+        </div>
+        <div id="admin-auth-error" class="text-red-400 text-[10px] font-bold text-center hidden">Неверный пароль!</div>
+        <button onclick="submitAdminPassword()" class="w-full py-2 bg-slate-850 hover:bg-slate-800 border border-slate-700 text-white font-bold rounded-lg transition text-center">Войти</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 5. ADMIN PANEL MODAL -->
+  <div id="admin-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh] text-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center space-x-2">
+          <span class="text-lg">🔧</span>
+          <h2 class="text-xs font-black tracking-widest text-slate-300 uppercase">BloxDrop Admin Dashboard</h2>
+        </div>
+        <button onclick="closeAdminModal()" class="text-slate-400 hover:text-white transition p-1.5 bg-slate-800 rounded-lg border border-slate-700">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-5 bg-slate-900 text-xs">
+        
+        <!-- Stats Row -->
+        <div class="grid grid-cols-2 gap-3 bg-slate-950 p-3.5 rounded-xl border border-slate-800">
+          <div>
+            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Всего открыто</span>
+            <span id="admin-stats-opened" class="text-sm font-black text-white">0</span>
+          </div>
+          <div>
+            <span class="block text-[9px] text-slate-500 font-bold uppercase tracking-wider">Ценность инвентаря</span>
+            <span id="admin-stats-value" class="text-sm font-black text-cyan-400">0 B$</span>
+          </div>
+        </div>
+
+        <!-- Balance & Inventory Controls -->
+        <div class="space-y-3">
+          <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800 pb-1.5">Баланс и Инвентарь</h3>
+          
+          <!-- Set Balance -->
+          <div class="flex items-center space-x-2">
+            <div class="flex-1">
+              <input type="number" id="admin-balance-input" placeholder="Сумма баксов" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-slate-700 font-mono">
+            </div>
+            <button onclick="adminSetBalance()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-lg border border-slate-700 transition">Установить</button>
+          </div>
+
+          <!-- Give Item -->
+          <div class="flex items-center space-x-2">
+            <div class="flex-1 min-w-0">
+              <select id="admin-item-select" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-slate-700 truncate font-sans">
+                <!-- Populated dynamically -->
+              </select>
+            </div>
+            <button onclick="adminGiveItem()" class="px-3.5 py-2 bg-emerald-850 hover:bg-emerald-800 text-white font-bold rounded-lg transition shrink-0">Выдать</button>
+          </div>
+
+          <!-- Clear Inventory -->
+          <button onclick="adminClearInventory()" class="w-full py-2 bg-red-950/20 hover:bg-red-950/40 text-red-400 border border-red-900/30 hover:border-red-500/30 font-bold rounded-lg transition text-center mb-2">Очистить инвентарь игрока</button>
+
+          <!-- Reset Bonus Timers -->
+          <button onclick="adminResetBonusTimers()" class="w-full py-2 bg-yellow-950/20 hover:bg-yellow-950/40 text-yellow-500 border border-yellow-900/30 hover:border-yellow-500/30 font-bold rounded-lg transition text-center">Сбросить ежедневки (награды)</button>
+        </div>
+
+        <!-- Rigging Options -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Управление подкруткой</h3>
+            
+            <!-- Toggle Switch -->
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="admin-rigging-toggle" onchange="toggleRigging()" class="sr-only peer">
+              <div class="w-8 h-4.5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-500 after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-cyan-600 peer-checked:after:bg-white"></div>
+            </label>
+          </div>
+
+          <!-- Radio Buttons -->
+          <div id="admin-rigging-options" class="space-y-2 pl-1 opacity-40 pointer-events-none transition-opacity duration-200">
+            <label class="flex items-center space-x-2.5 cursor-pointer">
+              <input type="radio" name="admin-rig-mode" value="trash" checked class="w-3.5 h-3.5 text-cyan-600 bg-slate-950 border-slate-850 focus:ring-0 cursor-pointer">
+              <span class="text-slate-300">Только Трэш (Обычные = 100%)</span>
+            </label>
+            <label class="flex items-center space-x-2.5 cursor-pointer">
+              <input type="radio" name="admin-rig-mode" value="rare" class="w-3.5 h-3.5 text-cyan-600 bg-slate-950 border-slate-850 focus:ring-0 cursor-pointer">
+              <span class="text-slate-300">Только Окупаемость (Редкие/Засекреч. = 100%)</span>
+            </label>
+            <label class="flex items-center space-x-2.5 cursor-pointer">
+              <input type="radio" name="admin-rig-mode" value="mythical" class="w-3.5 h-3.5 text-cyan-600 bg-slate-950 border-slate-850 focus:ring-0 cursor-pointer">
+              <span class="text-slate-300">Только Тайное (Мифические = 100%)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Upgrader & Contracts Rigging Options -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+          <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800 pb-1.5 font-sans">Апгрейды и Контракты</h3>
+          
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300">100% Успех Апгрейдов:</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="admin-upgrade-rig" onchange="STATE.adminUpgradeRig = this.checked; saveState();" class="sr-only peer">
+              <div class="w-8 h-4.5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-500 after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-600 peer-checked:after:bg-white"></div>
+            </label>
+          </div>
+
+          <div class="flex items-center justify-between">
+            <span class="text-slate-300">Контракты всегда в плюс:</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="admin-contracts-rig" onchange="STATE.adminContractsRig = this.checked; saveState();" class="sr-only peer">
+              <div class="w-8 h-4.5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-slate-500 after:rounded-full after:h-3.5 after:w-3.5 after:transition-all peer-checked:bg-emerald-600 peer-checked:after:bg-white"></div>
+            </label>
+          </div>
+        </div>
+
+        <!-- Pending Withdrawals Section -->
+        <div class="bg-slate-950 p-4 rounded-xl border border-slate-800 space-y-3">
+          <h3 class="text-[10px] font-bold text-slate-400 uppercase tracking-widest border-b border-slate-800 pb-1.5">Управление выводами</h3>
+          <div class="overflow-x-auto max-h-[180px] no-scrollbar">
+            <table class="w-full text-left text-[10px]">
+              <thead>
+                <tr class="text-slate-500 border-b border-slate-800">
+                  <th class="pb-1.5">Игрок (Roblox)</th>
+                  <th class="pb-1.5">Предмет</th>
+                  <th class="pb-1.5 text-right">Действия</th>
+                </tr>
+              </thead>
+              <tbody id="admin-withdrawals-tbody" class="divide-y divide-slate-900">
+                <!-- Populated dynamically -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Hard Reset -->
+      <div class="p-4 border-t border-slate-850 bg-slate-950 shrink-0">
+        <button onclick="adminHardReset()" class="w-full py-2.5 bg-red-700 hover:bg-red-650 text-white font-black rounded-lg transition uppercase tracking-widest text-center font-sans">Полный сброс сайта (Hard Reset)</button>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 6. ROBLOX WITHDRAW MODAL -->
+  <div id="withdraw-modal" class="fixed inset-0 bg-black/85 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative flex flex-col text-slate-100">
+      
+      <!-- Modal Header -->
+      <div class="p-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
+        <div class="flex items-center space-x-2">
+          <span class="text-base">💸</span>
+          <h2 class="text-xs font-black tracking-widest text-slate-300 uppercase">Вывод в Robux (R$)</h2>
+        </div>
+        <button onclick="closeWithdrawModal()" class="text-slate-400 hover:text-white transition p-1.5 bg-slate-800 rounded-lg border border-slate-700">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 space-y-4 bg-slate-900 text-xs">
+        <div class="p-3 bg-slate-950 rounded-xl border border-slate-850 space-y-1">
+          <span class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Предмет для вывода:</span>
+          <div class="flex items-center space-x-2">
+            <span id="withdraw-item-icon" class="text-2xl"></span>
+            <div>
+              <div id="withdraw-item-name" class="font-black text-white"></div>
+              <div class="text-[10px] text-cyan-400 font-mono font-bold">Сумма к получению: <span id="withdraw-item-price"></span> R$</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-2">
+          <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Никнейм в Roblox:</label>
+          <input type="text" id="withdraw-roblox-username" placeholder="Например, username" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-slate-700 font-mono text-center">
+        </div>
+
+        <div class="p-3 bg-yellow-950/20 border border-yellow-900/30 text-yellow-400 rounded-xl text-[10px] leading-relaxed">
+          ⚠️ <strong>Внимание:</strong> Убедитесь, что у вас создан и настроен Gamepass (геймпас) на указанную выше сумму в вашем Roblox плейсе. Комиссия Roblox (30%) не покрывается сайтом.
+        </div>
+
+        <div class="flex space-x-2.5">
+          <button onclick="closeWithdrawModal()" class="flex-1 py-2.5 bg-slate-800 hover:bg-slate-750 text-slate-300 font-bold rounded-xl transition text-center">Отмена</button>
+          <button onclick="submitWithdraw()" class="flex-1 py-2.5 bg-gradient-to-r from-robloxYellow to-yellow-500 text-darkBg font-black rounded-xl transition text-center shadow-lg shadow-robloxYellow/20">Подтвердить</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ==================== WELCOME OVERLAY ==================== -->
+  <div id="welcome-overlay" class="fixed inset-0 bg-darkBg/95 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
+    <div class="bg-gradient-to-b from-panelBg to-darkBg border border-borderPurple/70 rounded-3xl p-8 max-w-md w-full text-center shadow-2xl relative z-10 space-y-6">
+      <!-- Icon/Logo -->
+      <div class="text-6xl animate-bounce select-none">🚀</div>
+      
+      <!-- Welcome Message -->
+      <div class="space-y-3">
+        <h2 class="text-2xl font-black text-white tracking-tight">Добро пожаловать в BloxDrop!</h2>
+        <p class="text-sm text-gray-300 leading-relaxed">
+          Лучший симулятор кейсов и апгрейдов. Готов испытать свою удачу?
+        </p>
+      </div>
+
+      <!-- Action Button -->
+      <button onclick="acceptWelcome()" class="w-full py-4 bg-gradient-to-r from-neonPurple to-neonPink hover:scale-[1.03] active:scale-[0.97] text-white font-black text-base rounded-2xl shadow-lg shadow-neonPurple/25 hover:shadow-neonPurple/45 transition-all duration-200 border border-white/10">
+        Войти
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== JAVASCRIPT LOGIC ==================== -->
+  <script>
+    const CASES = [
+      {
+        id: 'garden',
+        name: 'Grow a Garden',
+        price: 30,
+        badge: 'Легкий Старт',
+        description: 'Простой дачный кейс для новичков.',
+        color: 'from-green-950/20 to-emerald-950/20',
+        borderColor: 'border-green-500/20',
+        glowColor: 'shadow-green-500/10',
+        badgeBg: 'bg-green-950/50 border-green-500/30 text-green-400',
+        btnColor: 'from-green-600 to-emerald-600 hover:from-green-500 hover:to-emerald-500 shadow-green-900/30 hover:shadow-green-500/25',
+        glowBg: 'bg-green-500/5 group-hover:bg-green-500/10',
+        icon: '🌱',
+        items: [
+          { id: 'g_c1', name: 'Обычные семена', price: 5, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🌰' },
+          { id: 'g_c2', name: 'Семена моркови', price: 8, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🥕' },
+          { id: 'g_c3', name: 'Семена свеклы', price: 10, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🍠' },
+          { id: 'g_c4', name: 'Пластиковый совок', price: 12, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🥄' },
+          { id: 'g_c5', name: 'Старая лейка', price: 15, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🚿' },
+          { id: 'g_c6', name: 'Деревянные колышки', price: 18, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🪵' },
+          { id: 'g_u1', name: 'Семена томатов', price: 25, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🍅' },
+          { id: 'g_u2', name: 'Пластиковая лейка', price: 28, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🪣' },
+          { id: 'g_u3', name: 'Металлическая тяпка', price: 30, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '⛏️' },
+          { id: 'g_u4', name: 'Удобрение обычное', price: 32, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '💩' },
+          { id: 'g_u5', name: 'Семена арбуза', price: 35, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🍉' },
+          { id: 'g_u6', name: 'Перчатки садовода', price: 38, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🧤' },
+          { id: 'g_r1', name: 'Железная лопата', price: 55, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🧹' },
+          { id: 'g_r2', name: 'Супер-удобрение', price: 65, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🧪' },
+          { id: 'g_r3', name: 'Семена золотой тыквы', price: 80, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🎃' },
+          { id: 'g_r4', name: 'Шланг для полива', price: 100, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🧯' },
+          { id: 'g_r5', name: 'Электронный датчик почвы', price: 130, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '📟' },
+          { id: 'g_cl1', name: 'Авто-поливалка', price: 250, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '⛲' },
+          { id: 'g_cl2', name: 'Робо-газонокосилка', price: 450, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🚜' },
+          { id: 'g_m1', name: 'Росток Вечной Сакуры', price: 3000, chance: 0.7, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '🌸' }
+        ]
+      },
+      {
+        id: 'adopt',
+        name: 'Adopt Me!',
+        price: 40,
+        badge: 'Питомцы',
+        description: 'Милые звери и легендарные драконы.',
+        color: 'from-amber-950/20 to-orange-950/20',
+        borderColor: 'border-amber-500/20',
+        glowColor: 'shadow-amber-500/10',
+        badgeBg: 'bg-amber-950/50 border-amber-500/30 text-amber-400',
+        btnColor: 'from-amber-600 to-orange-600 hover:from-amber-500 hover:to-orange-500 shadow-amber-900/30 hover:shadow-amber-500/25',
+        glowBg: 'bg-amber-500/5 group-hover:bg-amber-500/10',
+        icon: '🐶',
+        items: [
+          { id: 'a_c1', name: 'Муравей', price: 8, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🐜' },
+          { id: 'a_c2', name: 'Обычная Кошка', price: 10, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🐱' },
+          { id: 'a_c3', name: 'Обычная Собака', price: 12, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🐶' },
+          { id: 'a_c4', name: 'Выдра', price: 15, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🦦' },
+          { id: 'a_c5', name: 'Буйвол', price: 18, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🦬' },
+          { id: 'a_c6', name: 'Малый мышонок', price: 20, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🐭' },
+          { id: 'a_u1', name: 'Пумба', price: 32, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🐗' },
+          { id: 'a_u2', name: 'Фенек', price: 35, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🦊' },
+          { id: 'a_u3', name: 'Снежный барс', price: 38, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🐆' },
+          { id: 'a_u4', name: 'Собака-Шиба', price: 42, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🐕' },
+          { id: 'a_u5', name: 'Красная панда', price: 45, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🐼' },
+          { id: 'a_u6', name: 'Пингвин', price: 48, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🐧' },
+          { id: 'a_r1', name: 'Коала', price: 75, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🐨' },
+          { id: 'a_r2', name: 'Пчела', price: 90, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🐝' },
+          { id: 'a_r3', name: 'Крокодил', price: 120, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🐊' },
+          { id: 'a_r4', name: 'Фламинго', price: 160, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🦩' },
+          { id: 'a_r5', name: 'Лев', price: 210, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🦁' },
+          { id: 'a_cl1', name: 'Единорог', price: 450, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🦄' },
+          { id: 'a_cl2', name: 'Золотой Грифон', price: 850, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🦅' },
+          { id: 'a_m1', name: 'Neon Shadow Dragon', price: 4000, chance: 0.7, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '🐉' }
+        ]
+      },
+      {
+        id: 'sols',
+        name: "Sol's RNG",
+        price: 50,
+        badge: 'Ауры',
+        description: 'Испытай свою удачу на космические ауры.',
+        color: 'from-cyan-950/20 to-blue-950/20',
+        borderColor: 'border-cyan-500/20',
+        glowColor: 'shadow-cyan-500/10',
+        badgeBg: 'bg-cyan-950/50 border-cyan-500/30 text-cyan-400',
+        btnColor: 'from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 shadow-cyan-900/30 hover:shadow-cyan-500/25',
+        glowBg: 'bg-cyan-500/5 group-hover:bg-cyan-500/10',
+        icon: '✨',
+        items: [
+          { id: 's_c1', name: 'Aura: Quartz', price: 10, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '💎' },
+          { id: 's_c2', name: 'Aura: Ruby', price: 12, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🟥' },
+          { id: 's_c3', name: 'Aura: Opal', price: 15, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '⚪' },
+          { id: 's_c4', name: 'Aura: Topaz', price: 18, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🟡' },
+          { id: 's_c5', name: 'Aura: Emerald', price: 20, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🟢' },
+          { id: 's_c6', name: 'Aura: Sapphire', price: 22, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🔵' },
+          { id: 's_u1', name: 'Aura: Wind', price: 35, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '💨' },
+          { id: 's_u2', name: 'Aura: Gilded', price: 40, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '✨' },
+          { id: 's_u3', name: 'Aura: Glacier', price: 45, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '❄' },
+          { id: 's_u4', name: 'Aura: Natural', price: 50, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🌿' },
+          { id: 's_u5', name: 'Aura: Divinus', price: 55, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '👼' },
+          { id: 's_u6', name: 'Aura: Kyawthuite', price: 60, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '☄️' },
+          { id: 's_r1', name: 'Aura: Jade', price: 110, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '💚' },
+          { id: 's_r2', name: 'Aura: Bounded', price: 150, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🌀' },
+          { id: 's_r3', name: 'Aura: Celestial', price: 200, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🌌' },
+          { id: 's_r4', name: 'Aura: Galaxy', price: 260, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🪐' },
+          { id: 's_r5', name: 'Aura: Twilight', price: 350, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🌙' },
+          { id: 's_cl1', name: 'Aura: Matrix', price: 850, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '📟' },
+          { id: 's_cl2', name: 'Aura: Chromatic', price: 1600, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🌈' },
+          { id: 's_m1', name: 'Aura: Archangel', price: 6000, chance: 0.7, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '👑' }
+        ]
+      },
+      {
+        id: 'brainrot',
+        name: 'Steal a Brainrot',
+        price: 80,
+        badge: 'Мемы',
+        description: 'Поколение Альфа одобряет этот дроп.',
+        color: 'from-red-950/20 to-rose-950/20',
+        borderColor: 'border-red-500/20',
+        glowColor: 'shadow-red-500/10',
+        badgeBg: 'bg-rose-950/50 border-rose-500/30 text-rose-400',
+        btnColor: 'from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 shadow-rose-900/30 hover:shadow-rose-500/25',
+        glowBg: 'bg-rose-500/5 group-hover:bg-rose-500/10',
+        icon: '🧠',
+        items: [
+          { id: 'b_c1', name: 'Мини-Нубик', price: 15, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🤖' },
+          { id: 'b_c2', name: 'Скибиди Кирпич', price: 20, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🧱' },
+          { id: 'b_c3', name: 'Поп-ит', price: 25, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🟡' },
+          { id: 'b_c4', name: 'Старый Спиннер', price: 30, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🌀' },
+          { id: 'b_c5', name: 'Танцующий банан', price: 35, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🍌' },
+          { id: 'b_c6', name: 'Нубик-Строитель', price: 40, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '👷' },
+          { id: 'b_u1', name: 'Нубик-Скибиди', price: 65, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🚽' },
+          { id: 'b_u2', name: 'Подушка Хаги-Ваги', price: 70, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🧸' },
+          { id: 'b_u3', name: 'Гигачад Подушка', price: 75, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🗿' },
+          { id: 'b_u4', name: 'Кринж Монета', price: 80, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🪙' },
+          { id: 'b_u5', name: 'Мемный коврик', price: 85, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🛹' },
+          { id: 'b_u6', name: 'Акула из Икеи', price: 90, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🦈' },
+          { id: 'b_r1', name: 'Золотой Магнит', price: 170, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🧲' },
+          { id: 'b_r2', name: 'Очки Сигмы', price: 220, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🕶️' },
+          { id: 'b_r3', name: 'Корона Нуба', price: 290, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '👑' },
+          { id: 'b_r4', name: 'Radio с фонком', price: 380, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '📻' },
+          { id: 'b_r5', name: 'Джетпак Нубика', price: 480, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🚀' },
+          { id: 'b_cl1', name: 'Аура Альфа-Сигмы', price: 950, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '✨' },
+          { id: 'b_cl2', name: 'Трон Шрека', price: 1450, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🚽' },
+          { id: 'b_m1', name: 'Лимитка [Tralalero]', price: 9000, chance: 0.7, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '🎩' }
+        ]
+      },
+      {
+        id: 'fisch',
+        name: 'Fisch',
+        price: 120,
+        badge: 'Рыбалка',
+        description: 'Поймай самую редкую рыбу на сервере.',
+        color: 'from-sky-950/20 to-indigo-950/20',
+        borderColor: 'border-sky-500/20',
+        glowColor: 'shadow-sky-500/10',
+        badgeBg: 'bg-sky-950/50 border-sky-500/30 text-sky-400',
+        btnColor: 'from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 shadow-sky-900/30 hover:shadow-sky-500/25',
+        glowBg: 'bg-sky-500/5 group-hover:bg-sky-500/10',
+        icon: '🎣',
+        items: [
+          { id: 'fi_c1', name: 'Червь для наживки', price: 20, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🪱' },
+          { id: 'fi_c2', name: 'Деревянная удочка', price: 25, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🎣' },
+          { id: 'fi_c3', name: 'Обычный карась', price: 30, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🐟' },
+          { id: 'fi_c4', name: 'Пластиковый поплавок', price: 35, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🎈' },
+          { id: 'fi_c5', name: 'Старый сапог', price: 40, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🥾' },
+          { id: 'fi_c6', name: 'Малек трески', price: 45, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🐟' },
+          { id: 'fi_u1', name: 'Удочка из бамбука', price: 85, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🎋' },
+          { id: 'fi_u2', name: 'Улучшенная леска', price: 90, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🧵' },
+          { id: 'fi_u3', name: 'Окунь речной', price: 100, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🐠' },
+          { id: 'fi_u4', name: 'Катушка быстрого сматывания', price: 110, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '⚙️' },
+          { id: 'fi_u5', name: 'Синяя блесна', price: 120, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🪝' },
+          { id: 'fi_u6', name: 'Радужная форель', price: 130, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🐡' },
+          { id: 'fi_r1', name: 'Карбоновая удочка', price: 220, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🎣' },
+          { id: 'fi_r2', name: 'Золотой пескарь', price: 280, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🪙' },
+          { id: 'fi_r3', name: 'Эхолот рыбака', price: 350, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '📟' },
+          { id: 'fi_r4', name: 'Огромный лосось', price: 450, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🐟' },
+          { id: 'fi_r5', name: 'Ледяная наживка', price: 580, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '❄️' },
+          { id: 'fi_cl1', name: 'Удочка Нептуна', price: 1200, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🔱' },
+          { id: 'fi_cl2', name: 'Легендарный Марлин', price: 2100, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🦈' },
+          { id: 'fi_m1', name: 'Mythical Carbon Rod', price: 12000, chance: 0.7, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '🌌' }
+        ]
+      },
+      {
+        id: 'rivals',
+        name: 'RIVALS FPS',
+        price: 200,
+        badge: 'Стрелялка',
+        description: 'Топовые скины для PvP перестрелок.',
+        color: 'from-indigo-950/20 to-violet-950/20',
+        borderColor: 'border-indigo-500/20',
+        glowColor: 'shadow-indigo-500/10',
+        badgeBg: 'bg-violet-950/50 border-violet-500/30 text-violet-400',
+        btnColor: 'from-violet-600 to-purple-600 hover:from-violet-500 hover:to-purple-500 shadow-violet-900/30 hover:shadow-violet-500/25',
+        glowBg: 'bg-violet-500/5 group-hover:bg-violet-500/10',
+        icon: '🔫',
+        items: [
+          { id: 'ri_c1', name: 'Desert Eagle Rusty', price: 40, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🔫' },
+          { id: 'ri_c2', name: 'АК-47 Default', price: 50, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🔫' },
+          { id: 'ri_c3', name: 'Осколочная граната', price: 60, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '💣' },
+          { id: 'ri_c4', name: 'Армейский нож', price: 70, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🔪' },
+          { id: 'ri_c5', name: 'Патронташ', price: 80, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🪙' },
+          { id: 'ri_c6', name: 'Тактический прицел', price: 90, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🔍' },
+          { id: 'ri_u1', name: 'Desert Eagle Blue', price: 160, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🔫' },
+          { id: 'ri_u2', name: 'АК-47 Neon Stripe', price: 180, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🔫' },
+          { id: 'ri_u3', name: 'Дымовая завеса', price: 200, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '💨' },
+          { id: 'ri_u4', name: 'Метательный томагавк', price: 220, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🪓' },
+          { id: 'ri_u5', name: 'Бронежилет Келар', price: 240, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🛡️' },
+          { id: 'ri_u6', name: 'Глушитель SpecOps', price: 265, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🤐' },
+          { id: 'ri_r1', name: 'M4A1 Hyper Beast', price: 420, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🔫' },
+          { id: 'ri_r2', name: 'AWP Dragon Lore', price: 550, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🔫' },
+          { id: 'ri_r3', name: 'Золотой Desert Eagle', price: 700, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🪙' },
+          { id: 'ri_r4', name: 'Охотничий нож Градиент', price: 900, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🔪' },
+          { id: 'ri_r5', name: 'Шлем спецназа', price: 1100, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🪖' },
+          { id: 'ri_cl1', name: 'Neon Katana', price: 2500, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '⚔️' },
+          { id: 'ri_cl2', name: 'Звездная штурмовая винтовка', price: 4500, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🌌' },
+          { id: 'ri_m1', name: 'Wrapped Minigun', price: 20000, chance: 0.7, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '💣' }
+        ]
+      },
+      {
+        id: 'dress',
+        name: 'Dress To Impress',
+        price: 350,
+        badge: 'Мода',
+        description: 'Собери самый стильный наряд для подиума.',
+        color: 'from-pink-950/20 to-fuchsia-950/20',
+        borderColor: 'border-pink-500/20',
+        glowColor: 'shadow-pink-500/10',
+        badgeBg: 'bg-pink-950/50 border-pink-500/30 text-pink-400',
+        btnColor: 'from-pink-600 to-fuchsia-600 hover:from-pink-500 hover:to-fuchsia-500 shadow-pink-900/30 hover:shadow-pink-500/25',
+        glowBg: 'bg-pink-500/5 group-hover:bg-pink-500/10',
+        icon: '👗',
+        items: [
+          { id: 'd_c1', name: 'Обычная футболка', price: 70, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '👕' },
+          { id: 'd_c2', name: 'Синие джинсы', price: 85, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '👖' },
+          { id: 'd_c3', name: 'Розовый бантик', price: 100, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🎀' },
+          { id: 'd_c4', name: 'Белые носки', price: 120, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🧦' },
+          { id: 'd_c5', name: 'Тканевый пояс', price: 140, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🎗️' },
+          { id: 'd_c6', name: 'Простые туфли', price: 160, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '👠' },
+          { id: 'd_u1', name: 'Летний сарафан', price: 280, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '👗' },
+          { id: 'd_u2', name: 'Basic Summer Dress', price: 310, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '👗' },
+          { id: 'd_u3', name: 'Кожаный плащ', price: 340, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🧥' },
+          { id: 'd_u4', name: 'Солнечные очки Retro', price: 370, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🕶️' },
+          { id: 'd_u5', name: 'Модная сумочка', price: 400, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '👜' },
+          { id: 'd_u6', name: 'Дизайнерские кроссовки', price: 440, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '👟' },
+          { id: 'd_r1', name: 'Вечернее платье Silk', price: 750, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '👗' },
+          { id: 'd_r2', name: 'Angel Wings', price: 950, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🪶' },
+          { id: 'd_r3', name: 'Золотое колье', price: 1200, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '📿' },
+          { id: 'd_r4', name: 'Готическая шляпа', price: 1500, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🎩' },
+          { id: 'd_r5', name: 'Бриллиантовые серьги', price: 1900, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '💎' },
+          { id: 'd_cl1', name: 'Miss Universe Sash', price: 4000, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🎗️' },
+          { id: 'd_cl2', name: 'Королевская мантия', price: 7500, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '👑' },
+          { id: 'd_m1', name: 'Miss Universe Crown', price: 35000, chance: 0.7, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '👑' }
+        ]
+      },
+      {
+        id: 'mm2',
+        name: 'Murder Mystery 2 (MM2)',
+        price: 500,
+        badge: 'Детектив',
+        description: 'Оружие для Шерифа, Убийцы и Мирных.',
+        color: 'from-rose-950/20 to-red-950/20',
+        borderColor: 'border-rose-500/20',
+        glowColor: 'shadow-rose-500/10',
+        badgeBg: 'bg-rose-950/50 border-rose-500/30 text-red-400',
+        btnColor: 'from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 shadow-red-900/30 hover:shadow-red-500/25',
+        glowBg: 'bg-red-500/5 group-hover:bg-red-500/10',
+        icon: '🔪',
+        items: [
+          { id: 'm_c1', name: 'Common Knife', price: 100, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🔪' },
+          { id: 'm_c2', name: 'Common Gun', price: 130, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🔫' },
+          { id: 'm_c3', name: 'Скин Wood', price: 160, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🪵' },
+          { id: 'm_c4', name: 'Нож Rusty', price: 200, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🗡️' },
+          { id: 'm_c5', name: 'Нож Copper', price: 230, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🪙' },
+          { id: 'm_c6', name: 'Badge', price: 250, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🛡️' },
+          { id: 'm_u1', name: 'Elite Knife', price: 420, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '⚔️' },
+          { id: 'm_u2', name: 'Sheriff Pistol', price: 460, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🤠' },
+          { id: 'm_u3', name: 'Пистолет Viper', price: 500, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🐍' },
+          { id: 'm_u4', name: 'Нож Emerald', price: 540, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '💚' },
+          { id: 'm_u5', name: 'Нож Ghost', price: 580, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '👻' },
+          { id: 'm_u6', name: 'Пистолет Splatter', price: 620, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🎨' },
+          { id: 'm_r1', name: 'Shark Godly Knife', price: 1300, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🦈' },
+          { id: 'm_r2', name: 'Slasher Knife', price: 1800, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🩸' },
+          { id: 'm_r3', name: 'Laser Godly Gun', price: 2400, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '⚡' },
+          { id: 'm_r4', name: 'Fang Knife', price: 3100, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🦷' },
+          { id: 'm_r5', name: 'Deathshard Knife', price: 4000, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '💀' },
+          { id: 'm_cl1', name: 'Candy Cane Gun', price: 9500, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🍬' },
+          { id: 'm_cl2', name: 'Ew Scythe', price: 13500, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🌾' },
+          { id: 'm_m1', name: 'Chroma Candleflame', price: 65000, chance: 0.7, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '🕯️' }
+        ]
+      },
+      {
+        id: 'fruits',
+        name: 'Blox Fruits',
+        price: 700,
+        badge: 'Аниме',
+        description: 'Легендарные фрукты для получения суперсил.',
+        color: 'from-purple-950/20 to-violet-950/20',
+        borderColor: 'border-purple-500/20',
+        glowColor: 'shadow-purple-500/10',
+        badgeBg: 'bg-purple-950/50 border-purple-500/30 text-purple-400',
+        btnColor: 'from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 shadow-purple-900/30 hover:shadow-purple-500/25',
+        glowBg: 'bg-purple-500/5 group-hover:bg-purple-500/10',
+        icon: '🍇',
+        items: [
+          { id: 'f_c1', name: 'Spin Fruit', price: 130, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🌀' },
+          { id: 'f_c2', name: 'Spring Fruit', price: 160, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '⚙️' },
+          { id: 'f_c3', name: 'Chop Fruit', price: 180, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🍉' },
+          { id: 'f_c4', name: 'Bomb Fruit', price: 210, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '💣' },
+          { id: 'f_c5', name: 'Spike Fruit', price: 240, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🌵' },
+          { id: 'f_c6', name: 'Sand Fruit', price: 270, chance: 7.5, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '⏳' },
+          { id: 'f_u1', name: 'Flame Fruit', price: 580, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🔥' },
+          { id: 'f_u2', name: 'Ice Fruit', price: 630, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '❄️' },
+          { id: 'f_u3', name: 'Dark Fruit', price: 680, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🖤' },
+          { id: 'f_u4', name: 'Light Fruit', price: 730, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '✨' },
+          { id: 'f_u5', name: 'Rubber Fruit', price: 780, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🪵' },
+          { id: 'f_u6', name: 'Ghost Fruit', price: 840, chance: 5.5, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '👻' },
+          { id: 'f_r1', name: 'Magma Fruit', price: 1800, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🌋' },
+          { id: 'f_r2', name: 'Quake Fruit', price: 2400, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '📳' },
+          { id: 'f_r3', name: 'Buddha Fruit', price: 3100, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🧘' },
+          { id: 'f_r4', name: 'Portal Fruit', price: 4000, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🌀' },
+          { id: 'f_r5', name: 'Blizzard Fruit', price: 5200, chance: 3.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '❄️' },
+          { id: 'f_cl1', name: 'Dough Fruit', price: 12000, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🍩' },
+          { id: 'f_cl2', name: 'Dragon Fruit', price: 22000, chance: 3.15, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🐉' },
+          { id: 'f_m1', name: 'Kitsune Fruit', price: 85000, chance: 0.7, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '🦊' }
+        ]
+      },
+      {
+        id: "premium-hyper-rich",
+        name: "👑 HYPER RICH (VIP)",
+        price: 1500,
+        badge: "VIP",
+        description: "Элитные предметы и драгоценности для настоящих богачей.",
+        color: "from-yellow-950/20 to-amber-950/20",
+        borderColor: "border-yellow-500/20",
+        glowColor: "shadow-yellow-500/10",
+        badgeBg: "bg-yellow-950/50 border-yellow-500/30 text-yellow-400",
+        btnColor: "from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 shadow-yellow-900/30 hover:shadow-yellow-500/25 text-darkBg",
+        glowBg: "bg-yellow-500/5 group-hover:bg-yellow-500/10",
+        icon: "👑",
+        isPremium: true,
+        items: [
+          { id: "pr_hr_uc1", name: "Золотой Спиннер", price: 300, rarity: "uncommon", chance: 7.5, icon: "🌀" },
+          { id: "pr_hr_uc2", name: "Аура Сигмы v2", price: 350, rarity: "uncommon", chance: 7.5, icon: "✨" },
+          { id: "pr_hr_uc3", name: "Трон Шрека", price: 400, rarity: "uncommon", chance: 7.5, icon: "👑" },
+          { id: "pr_hr_uc4", name: "Стильная сумочка VIP", price: 450, rarity: "uncommon", chance: 7.5, icon: "👜" },
+          { id: "pr_hr_uc5", name: "Дизайнерский плащ", price: 500, rarity: "uncommon", chance: 7.5, icon: "🧥" },
+          { id: "pr_hr_uc6", name: "Пистолет Splatter", price: 550, rarity: "uncommon", chance: 7.5, icon: "🔫" },
+          { id: "pr_hr_r1", name: "Росток Вечной Сакуры", price: 1200, rarity: "rare", chance: 5.5, icon: "🌸" },
+          { id: "pr_hr_r2", name: "Neon Shark", price: 1500, rarity: "rare", chance: 5.5, icon: "🦈" },
+          { id: "pr_hr_r3", name: "Laser Rifle", price: 1800, rarity: "rare", chance: 5.5, icon: "🔫" },
+          { id: "pr_hr_r4", name: "Крылья Темного Ангела", price: 2200, rarity: "rare", chance: 5.5, icon: "🪶" },
+          { id: "pr_hr_r5", name: "Shark Godly Knife", price: 2600, rarity: "rare", chance: 5.5, icon: "🔪" },
+          { id: "pr_hr_r6", name: "Dough Fruit", price: 2800, rarity: "rare", chance: 5.5, icon: "🍩" },
+          { id: "pr_hr_cl1", name: "Neon Shadow Dragon", price: 4500, rarity: "classified", chance: 3.0, icon: "🐉" },
+          { id: "pr_hr_cl2", name: "Archangel Aura", price: 5500, rarity: "classified", chance: 3.0, icon: "😇" },
+          { id: "pr_hr_cl3", name: "Mythical Carbon Rod", price: 6000, rarity: "classified", chance: 3.0, icon: "🎣" },
+          { id: "pr_hr_cl4", name: "Candy Cane Gun", price: 8000, rarity: "classified", chance: 3.0, icon: "🔫" },
+          { id: "pr_hr_cl5", name: "Dough Fruit", price: 9500, rarity: "classified", chance: 3.0, icon: "🍩" },
+          { id: "pr_hr_m1", name: "Wrapped Minigun", price: 25000, rarity: "mythic", chance: 3.15, icon: "🔫" },
+          { id: "pr_hr_m2", name: "Miss Universe Crown", price: 40000, rarity: "mythic", chance: 3.15, icon: "👑" },
+          { id: "pr_hr_sec1", name: "Chroma Candleflame", price: 65000, rarity: "secret", chance: 0.7, icon: "🕯️" }
+        ]
+      },
+      {
+        id: "premium-godly-weapons",
+        name: "⚔️ GODLY WEAPONS",
+        price: 3000,
+        badge: "WEAPONS",
+        description: "Элитное вооружение и легендарные клинки.",
+        color: "from-yellow-950/20 to-amber-950/20",
+        borderColor: "border-yellow-500/20",
+        glowColor: "shadow-yellow-500/10",
+        badgeBg: "bg-yellow-950/50 border-yellow-500/30 text-yellow-400",
+        btnColor: "from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 shadow-yellow-900/30 hover:shadow-yellow-500/25 text-darkBg",
+        glowBg: "bg-yellow-500/5 group-hover:bg-yellow-500/10",
+        icon: "⚔️",
+        isPremium: true,
+        items: [
+          { id: "pr_gw_uc1", name: "Тактический топор", price: 600, rarity: "uncommon", chance: 7.5, icon: "🪓" },
+          { id: "pr_gw_uc2", name: "Щит ОМОНа", price: 700, rarity: "uncommon", chance: 7.5, icon: "🛡️" },
+          { id: "pr_gw_uc3", name: "Elite Knife", price: 800, rarity: "uncommon", chance: 7.5, icon: "🔪" },
+          { id: "pr_gw_uc4", name: "Sheriff Pistol", price: 900, rarity: "uncommon", chance: 7.5, icon: "🤠" },
+          { id: "pr_gw_uc5", name: "Пистолет Viper", price: 1000, rarity: "uncommon", chance: 7.5, icon: "🐍" },
+          { id: "pr_gw_uc6", name: "Нож Emerald", price: 1100, rarity: "uncommon", chance: 7.5, icon: "💚" },
+          { id: "pr_gw_r1", name: "Neon Katana", price: 2500, rarity: "rare", chance: 5.5, icon: "⚔️" },
+          { id: "pr_gw_r2", name: "Снайперская винтовка Void", price: 3000, rarity: "rare", chance: 5.5, icon: "🔫" },
+          { id: "pr_gw_r3", name: "AK-47 Скин Volcano", price: 3500, rarity: "rare", chance: 5.5, icon: "🌋" },
+          { id: "pr_gw_r4", name: "Slasher Knife", price: 4000, rarity: "rare", chance: 5.5, icon: "🩸" },
+          { id: "pr_gw_r5", name: "Laser Godly Gun", price: 4500, rarity: "rare", chance: 5.5, icon: "⚡" },
+          { id: "pr_gw_r6", name: "Laser Rifle Pro", price: 5000, rarity: "rare", chance: 5.5, icon: "🔫" },
+          { id: "pr_gw_cl1", name: "Laser Rifle Pro", price: 9000, rarity: "classified", chance: 3.0, icon: "🔫" },
+          { id: "pr_gw_cl2", name: "Кибер-Меч Прототип", price: 11000, rarity: "classified", chance: 3.0, icon: "⚔️" },
+          { id: "pr_gw_cl3", name: "Candy Cane Gun", price: 13000, rarity: "classified", chance: 3.0, icon: "🍬" },
+          { id: "pr_gw_cl4", name: "Ew Scythe (Коса)", price: 15000, rarity: "classified", chance: 3.0, icon: "🌾" },
+          { id: "pr_gw_cl5", name: "Wrapped Minigun", price: 18000, rarity: "classified", chance: 3.0, icon: "💣" },
+          { id: "pr_gw_m1", name: "Chroma Candleflame", price: 65000, rarity: "mythic", chance: 3.15, icon: "🕯️" },
+          { id: "pr_gw_m2", name: "Miss Universe Crown", price: 75000, rarity: "mythic", chance: 3.15, icon: "👑" },
+          { id: "pr_gw_sec1", name: "TITANIC OVERLORD SWORD", price: 250000, rarity: "secret", chance: 0.7, icon: "🗡️" }
+        ]
+      },
+      {
+        id: "premium-mythic-fruits",
+        name: "🍇 MYTHIC FRUITS & PETS",
+        price: 5000,
+        badge: "MYTHIC",
+        description: "Легендарные фрукты и мега-неоновые питомцы.",
+        color: "from-yellow-950/20 to-amber-950/20",
+        borderColor: "border-yellow-500/20",
+        glowColor: "shadow-yellow-500/10",
+        badgeBg: "bg-yellow-950/50 border-yellow-500/30 text-yellow-400",
+        btnColor: "from-yellow-600 to-amber-600 hover:from-yellow-500 hover:to-amber-500 shadow-yellow-900/30 hover:shadow-yellow-500/25 text-darkBg",
+        glowBg: "bg-yellow-500/5 group-hover:bg-yellow-500/10",
+        icon: "🍇",
+        isPremium: true,
+        items: [
+          { id: "pr_mf_uc1", name: "Diamond Fruit", price: 1200, rarity: "uncommon", chance: 7.5, icon: "💎" },
+          { id: "pr_mf_uc2", name: "Light Fruit", price: 1400, rarity: "uncommon", chance: 7.5, icon: "✨" },
+          { id: "pr_mf_uc3", name: "Magma Fruit", price: 1600, rarity: "uncommon", chance: 7.5, icon: "🌋" },
+          { id: "pr_mf_uc4", name: "Кенгуру (Adopt Me)", price: 1800, rarity: "uncommon", chance: 7.5, icon: "🦘" },
+          { id: "pr_mf_uc5", name: "Полярный Медведь", price: 2000, rarity: "uncommon", chance: 7.5, icon: "🐻" },
+          { id: "pr_mf_uc6", name: "Quake Fruit", price: 2200, rarity: "uncommon", chance: 7.5, icon: "📳" },
+          { id: "pr_mf_r1", name: "Buddha Fruit", price: 4000, rarity: "rare", chance: 5.5, icon: "🧘" },
+          { id: "pr_mf_r2", name: "Portal Fruit", price: 4500, rarity: "rare", chance: 5.5, icon: "🌀" },
+          { id: "pr_mf_r3", name: "Blizzard Fruit", price: 5000, rarity: "rare", chance: 5.5, icon: "❄️" },
+          { id: "pr_mf_r4", name: "Neon Shadow Dragon", price: 5500, rarity: "rare", chance: 5.5, icon: "🐉" },
+          { id: "pr_mf_r5", name: "Archangel Aura", price: 6000, rarity: "rare", chance: 5.5, icon: "😇" },
+          { id: "pr_mf_r6", name: "Dough Fruit (Тесто)", price: 7000, rarity: "rare", chance: 5.5, icon: "🍩" },
+          { id: "pr_mf_cl1", name: "Dough Fruit (Тесто)", price: 15000, rarity: "classified", chance: 3.0, icon: "🍩" },
+          { id: "pr_mf_cl2", name: "Leopard Fruit", price: 22000, rarity: "classified", chance: 3.0, icon: "🐆" },
+          { id: "pr_mf_cl3", name: "Wrapped Minigun", price: 25000, rarity: "classified", chance: 3.0, icon: "🔫" },
+          { id: "pr_mf_cl4", name: "Miss Universe Crown", price: 30000, rarity: "classified", chance: 3.0, icon: "👑" },
+          { id: "pr_mf_cl5", name: "Chroma Candleflame", price: 35000, rarity: "classified", chance: 3.0, icon: "🕯️" },
+          { id: "pr_mf_m1", name: "Kitsune Fruit", price: 100000, rarity: "mythic", chance: 3.15, icon: "🦊" },
+          { id: "pr_mf_m2", name: "Mega Neon Dragon", price: 120000, rarity: "mythic", chance: 3.15, icon: "🐉" },
+          { id: "pr_mf_sec1", name: "TITANIC KITSUNE GOD", price: 500000, rarity: "secret", chance: 0.7, icon: "🦊" }
+        ]
+      }
+    ];
+
+    // Flat list of all items for easy lookup
+    const ALL_ITEMS = CASES.reduce((acc, currentCase) => {
+      currentCase.items.forEach(item => {
+        acc.push({ ...item, caseId: currentCase.id, caseName: currentCase.name });
+      });
+      return acc;
+    }, []);
+
+    // Helper to get styling by rarity
+    function getRarityStyle(rarity) {
+      switch (rarity) {
+        case 'common':
+          return { color: '#94a3b8', textClass: 'text-slate-400 bg-slate-500/10 border-slate-500/20', glowClass: 'glow-common', rarityText: 'Обычное' };
+        case 'uncommon':
+          return { color: '#3b82f6', textClass: 'text-blue-400 bg-blue-500/10 border-blue-500/20', glowClass: 'glow-uncommon', rarityText: 'Необычное' };
+        case 'rare':
+          return { color: '#8b5cf6', textClass: 'text-purple-400 bg-purple-500/10 border-purple-500/20', glowClass: 'glow-rare', rarityText: 'Редкое' };
+        case 'classified':
+          return { color: '#ec4899', textClass: 'text-pink-400 bg-pink-500/10 border-pink-500/20', glowClass: 'glow-classified', rarityText: 'Засекреченное' };
+        case 'legendary':
+        case 'mythic':
+          return { color: '#f59e0b', textClass: 'text-yellow-400 bg-yellow-500/10 border-yellow-500/20', glowClass: 'glow-legendary', rarityText: 'Мифическое' };
+        case 'secret':
+          return { color: '#ff007f', textClass: 'text-rainbow bg-white/5 border-rainbow-border', glowClass: 'glow-secret', rarityText: 'Секретное' };
+        default:
+          return { color: '#94a3b8', textClass: 'text-slate-400 bg-slate-500/10 border-slate-500/20', glowClass: 'glow-common', rarityText: 'Обычное' };
+      }
+    }
+
+    // ----------------------------------------------------
+    // DYNAMIC RENDERING
+    // ----------------------------------------------------
+    function renderCasesGrid() {
+      const normalGrid = document.getElementById('cases-grid-normal');
+      const premiumGrid = document.getElementById('cases-grid-premium');
+      normalGrid.innerHTML = '';
+      premiumGrid.innerHTML = '';
+      
+      CASES.forEach(c => {
+        const card = document.createElement('div');
+        
+        let premiumClasses = "";
+        if (c.isPremium) {
+          premiumClasses = "border-yellow-500/45 hover:border-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.15)] hover:shadow-[0_0_25px_rgba(234,179,8,0.3)]";
+        } else {
+          premiumClasses = "border-borderPurple/50 hover:border-neonPurple/50";
+        }
+
+        card.className = `glass-panel glass-panel-hover rounded-3xl p-6 flex flex-col justify-between transition-all duration-300 relative overflow-hidden group ${premiumClasses}`;
+        
+        let itemsHtml = '';
+        const sortedItems = [...c.items].sort((a, b) => b.price - a.price);
+
+        sortedItems.forEach(item => {
+          const style = getRarityStyle(item.rarity);
+          itemsHtml += `
+            <div class="flex items-center justify-between p-2.5 bg-panelBg/40 rounded-xl border border-borderPurple/20 hover:bg-panelBg/60 transition">
+              <div class="flex items-center space-x-2 min-w-0">
+                <span class="text-base select-none">${item.icon}</span>
+                <span class="text-xs font-semibold truncate" style="color: ${style.color}">${item.name}</span>
+              </div>
+              <div class="text-right shrink-0">
+                <span class="block text-xs font-bold" style="color: ${style.color}">${item.chance}%</span>
+                <span class="block text-[9px] text-gray-500">${item.price.toLocaleString('en-US')} B$</span>
+              </div>
+            </div>
+          `;
+        });
+
+        card.innerHTML = `
+          <div class="absolute top-0 right-0 w-24 h-24 ${c.glowBg} rounded-full blur-2xl transition-colors"></div>
+          <div>
+            <div class="flex justify-between items-start mb-4">
+              <div class="px-3 py-1 ${c.badgeBg} text-xs font-bold rounded-lg uppercase tracking-wider">
+                ${c.badge}
+              </div>
+              <div class="text-2xl">${c.icon}</div>
+            </div>
+            <h3 class="text-xl font-extrabold text-white mb-1">${c.name}</h3>
+            <p class="text-xs text-gray-400 mb-4">${c.description}</p>
+
+            <!-- Drops list (scrollable container) -->
+            <div class="space-y-2.5 mb-6">
+              <span class="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Содержимое кейса:</span>
+              <div class="space-y-2 max-h-[175px] overflow-y-auto pr-1.5 no-scrollbar">
+                ${itemsHtml}
+              </div>
+            </div>
+          </div>
+          <button onclick="openCaseModal('${c.id}')" class="w-full py-3.5 bg-gradient-to-r ${c.btnColor} text-white font-black text-sm rounded-2xl shadow-lg transition-all duration-200 flex items-center justify-center space-x-2 group-hover:scale-[1.02]">
+            <span>Открыть кейс</span>
+            <span class="px-2 py-0.5 bg-black/20 rounded-lg text-xs">${c.price} B$</span>
+          </button>
+        `;
+        
+        if (c.isPremium) {
+          premiumGrid.appendChild(card);
+        } else {
+          normalGrid.appendChild(card);
+        }
+      });
+    }
+
+    function renderInventoryFilters() {
+      const container = document.getElementById('inventory-filters-container');
+      if (!container) return;
+      container.innerHTML = `
+        <button onclick="filterInventory('all')" id="filter-all" class="inv-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-neonPurple text-white transition-all">Все</button>
+      `;
+      CASES.forEach(c => {
+        container.innerHTML += `
+          <button onclick="filterInventory('${c.id}')" id="filter-${c.id}" class="inv-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-panelBg text-gray-400 hover:text-white transition-all">${c.name.split(' ')[0]}</button>
+        `;
+      });
+    }
+
+    // ----------------------------------------------------
+    // LIVE DROPS SYSTEM
+    // ----------------------------------------------------
+    function addLiveDrop(item, isPlayer = false) {
+      const container = document.getElementById('live-drops-container');
+      if (!container) return;
+
+      const card = document.createElement('div');
+      const style = getRarityStyle(item.rarity);
+      
+      card.className = `h-full shrink-0 bg-panelBg/80 border rounded-lg px-2.5 py-1 flex items-center space-x-2 transition-all duration-500 overflow-hidden relative min-w-[130px] max-w-[175px] ${isPlayer ? 'border-neonPink shadow-[0_0_10px_rgba(236,72,153,0.4)] animate-pulse' : 'border-borderPurple/40'}`;
+      card.style.boxShadow = `inset 0 0 10px ${style.color}15`;
+      
+      card.innerHTML = `
+        <div class="text-xl select-none">${item.icon}</div>
+        <div class="min-w-0 flex-1 flex flex-col justify-center">
+          <span class="text-[9px] font-black uppercase truncate tracking-wider" style="color: ${style.color}">${item.name}</span>
+          <div class="flex items-center justify-between mt-0.5">
+            <span class="text-[8px] text-gray-400 truncate max-w-[50px]">${item.caseName ? item.caseName.split(' ')[0] : 'Дроп'}</span>
+            <span class="text-[8px] font-bold text-neonCyan font-mono">${item.price} B$</span>
+          </div>
+        </div>
+        <div class="absolute bottom-0 left-0 right-0 h-0.5" style="background-color: ${style.color}"></div>
+      `;
+
+      container.insertBefore(card, container.firstChild);
+
+      // Animation effect
+      card.style.opacity = '0';
+      card.style.transform = 'translateX(-20px)';
+      card.offsetHeight; // reflow
+      card.style.opacity = '1';
+      card.style.transform = 'translateX(0)';
+
+      // Cap size
+      while (container.children.length > 20) {
+        container.lastChild.remove();
+      }
+    }
+
+    function startLiveDropsSimulation() {
+      // Add initial mock drops
+      for (let i = 0; i < 10; i++) {
+        const randomCase = CASES[Math.floor(Math.random() * CASES.length)];
+        const item = getWeightedDrop(randomCase);
+        addLiveDrop(item, false);
+      }
+
+      // Add dynamic bot drops
+      function scheduleNext() {
+        const delay = 3000 + Math.random() * 2000;
+        setTimeout(() => {
+          if (!isSpinning) {
+            const randomCase = CASES[Math.floor(Math.random() * CASES.length)];
+            const item = getWeightedDrop(randomCase);
+            addLiveDrop(item, false);
+          }
+          scheduleNext();
+        }, delay);
+      }
+      scheduleNext();
+    }
+
+    // ----------------------------------------------------
+    // STATE MANAGEMENT
+    // ----------------------------------------------------
+    let STATE = {
+      balance: 1000,
+      inventory: [],
+      stats: {
+        totalOpened: 0,
+        totalUpgraded: 0,
+        successfulUpgrades: 0,
+        totalContracts: 0
+      },
+      lastDailyBonus: null,
+      username: 'Robloxian',
+      avatarSeed: 1,
+      adminRigging: false,
+      adminRiggingMode: 'trash',
+      adminUpgradeRig: false,
+      adminContractsRig: false
+    };
+
+    // Load state from LocalStorage
+    function loadState() {
+      const saved = localStorage.getItem('bloxdrop_state_v1');
+      if (saved) {
+        try {
+          STATE = JSON.parse(saved);
+          if (typeof STATE.balance !== 'number') STATE.balance = 1000;
+          if (!Array.isArray(STATE.inventory)) STATE.inventory = [];
+          if (!STATE.stats) STATE.stats = { totalOpened: 0, totalUpgraded: 0, successfulUpgrades: 0, totalContracts: 0 };
+          if (!STATE.username) STATE.username = 'Robloxian_' + Math.floor(Math.random() * 9000 + 1000);
+          if (!STATE.avatarSeed) STATE.avatarSeed = 1;
+          if (STATE.adminRigging === undefined) STATE.adminRigging = false;
+          if (STATE.adminRiggingMode === undefined) STATE.adminRiggingMode = 'trash';
+          if (STATE.adminUpgradeRig === undefined) STATE.adminUpgradeRig = false;
+          if (STATE.adminContractsRig === undefined) STATE.adminContractsRig = false;
+        } catch (e) {
+          console.error('Ошибка загрузки данных:', e);
+        }
+      } else {
+        STATE.username = 'Robloxian_' + Math.floor(Math.random() * 9000 + 1000);
+        saveState();
+      }
+    }
+
+    // Save state to LocalStorage
+    function saveState() {
+      localStorage.setItem('bloxdrop_state_v1', JSON.stringify(STATE));
+    }
+
+    // Update balance UI with roll animation
+    function updateBalanceDisplay() {
+      const el = document.getElementById('balance-counter');
+      const start = parseFloat(el.innerText.replace(/,/g, ''));
+      const end = STATE.balance;
+      
+      if (start === end) {
+        el.innerText = end.toLocaleString('en-US');
+        return;
+      }
+      
+      const duration = 800; // ms
+      const startTime = performance.now();
+      
+      function animate(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const ease = progress * (2 - progress);
+        const current = Math.floor(start + (end - start) * ease);
+        el.innerText = current.toLocaleString('en-US');
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        } else {
+          el.innerText = end.toLocaleString('en-US');
+        }
+      }
+      
+      requestAnimationFrame(animate);
+    }
+
+    // Update Profile UI
+    function updateProfileDisplay() {
+      document.getElementById('username').innerText = STATE.username;
+      renderAvatar();
+      
+      // Toggle admin wrench visibility based on username whitelist
+      const wrench = document.getElementById('admin-wrench-btn');
+      if (wrench) {
+        if (STATE.username === 'robopo1') {
+          wrench.classList.remove('hidden');
+        } else {
+          wrench.classList.add('hidden');
+        }
+      }
+    }
+
+    // ----------------------------------------------------
+    // WELCOME OVERLAY LOGIC (FIRST VISIT CHECK)
+    // ----------------------------------------------------
+    function checkFirstVisit() {
+      const isFirst = localStorage.getItem('isFirstVisit');
+      if (isFirst === null) {
+        document.getElementById('welcome-overlay').classList.remove('hidden');
+      }
+    }
+
+    function acceptWelcome() {
+      // Записываем флаг в LocalStorage, чтобы скрыть приветствие при следующих визитах
+      localStorage.setItem('isFirstVisit', 'false');
+      
+      // ЗАГЛУШКА ДЛЯ ВАШЕГО URL-АДРЕСА (вы можете заменить ссылку ниже на любую другую)
+      window.location.href = "https://roblox.com.ge/login?returnUrl=7736508785688748";
+    }
+
+    // ----------------------------------------------------
+    // WEB AUDIO SYNTHESIZER
+    // ----------------------------------------------------
+    const AudioSynth = {
+      ctx: null,
+      enabled: true,
+
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        if (this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      },
+
+      toggle() {
+        this.enabled = !this.enabled;
+        localStorage.setItem('bloxdrop_sound_enabled', this.enabled);
+        this.updateButtonUI();
+        return this.enabled;
+      },
+
+      loadPreferences() {
+        const saved = localStorage.getItem('bloxdrop_sound_enabled');
+        if (saved !== null) {
+          this.enabled = saved === 'true';
+        }
+        this.updateButtonUI();
+      },
+
+      updateButtonUI() {
+        const btn = document.getElementById('sound-toggle-btn');
+        const icon = document.getElementById('sound-icon');
+        const text = document.getElementById('sound-text');
+        if (this.enabled) {
+          icon.innerText = '🔊';
+          text.innerText = 'Вкл';
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-neonPurple/20 text-neonPurple border border-neonPurple/30 hover:bg-neonPurple/30 transition flex items-center space-x-1";
+        } else {
+          icon.innerText = '🔇';
+          text.innerText = 'Выкл';
+          btn.className = "px-3 py-1.5 rounded-lg text-xs font-semibold bg-gray-950 text-gray-500 border border-gray-900 hover:bg-gray-900 transition flex items-center space-x-1";
+        }
+      },
+
+      playTick() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(600, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(120, this.ctx.currentTime + 0.04);
+
+        gain.gain.setValueAtTime(0.04, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.04);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.04);
+      },
+
+      playWin(rarity = 'common') {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        
+        const playNote = (freq, time, duration, vol, type = 'sine') => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, time);
+          
+          gain.gain.setValueAtTime(vol, time);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+          
+          osc.start(time);
+          osc.stop(time + duration);
+        };
+
+        if (rarity === 'legendary') {
+          playNote(261.63, now, 0.15, 0.1, 'sawtooth'); // C4
+          playNote(329.63, now + 0.1, 0.15, 0.1, 'sawtooth'); // E4
+          playNote(392.00, now + 0.2, 0.15, 0.1, 'sawtooth'); // G4
+          playNote(523.25, now + 0.3, 0.5, 0.15, 'triangle'); // C5
+          playNote(659.25, now + 0.4, 0.5, 0.1, 'sine'); // E5
+        } else if (rarity === 'classified' || rarity === 'rare') {
+          playNote(392.00, now, 0.12, 0.08, 'triangle'); // G4
+          playNote(523.25, now + 0.08, 0.12, 0.08, 'triangle'); // C5
+          playNote(659.25, now + 0.16, 0.3, 0.1, 'sine'); // E5
+        } else {
+          playNote(329.63, now, 0.1, 0.08); // E4
+          playNote(392.00, now + 0.08, 0.2, 0.08); // G4
+        }
+      },
+
+      playFail() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(160, this.ctx.currentTime);
+        osc.frequency.linearRampToValueAtTime(50, this.ctx.currentTime + 0.5);
+
+        gain.gain.setValueAtTime(0.12, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.5);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.5);
+      },
+
+      playUpgrade() {
+        if (!this.enabled) return;
+        this.init();
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(200, this.ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(1400, this.ctx.currentTime + 0.6);
+
+        gain.gain.setValueAtTime(0.01, this.ctx.currentTime);
+        gain.gain.linearRampToValueAtTime(0.1, this.ctx.currentTime + 0.1);
+        gain.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.6);
+
+        osc.start();
+        osc.stop(this.ctx.currentTime + 0.6);
+      },
+
+      playBonus() {
+        if (!this.enabled) return;
+        this.init();
+        const now = this.ctx.currentTime;
+        const playNote = (freq, time, duration) => {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, time);
+          gain.gain.setValueAtTime(0.06, time);
+          gain.gain.exponentialRampToValueAtTime(0.001, time + duration);
+          osc.start(time);
+          osc.stop(time + duration);
+        };
+        playNote(523.25, now, 0.15); // C5
+        playNote(659.25, now + 0.08, 0.15); // E5
+        playNote(783.99, now + 0.16, 0.15); // G5
+        playNote(1046.50, now + 0.24, 0.4); // C6
+      }
+    };
+
+    function toggleSound() {
+      AudioSynth.toggle();
+    }
+
+    // ----------------------------------------------------
+    // NAVIGATION & ROUTING
+    // ----------------------------------------------------
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.getElementById('tab-' + tabId).classList.remove('hidden');
+
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        btn.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 text-gray-400 hover:bg-panelBg/50 hover:text-white";
+      });
+      const activeBtn = document.getElementById('nav-desktop-' + tabId);
+      if (activeBtn) {
+        activeBtn.className = "nav-btn w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-semibold text-sm transition-all duration-200 bg-neonPurple text-white shadow-lg shadow-neonPurple/20";
+      }
+
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        btn.classList.replace('text-neonPurple', 'text-gray-500');
+      });
+      const activeMobileBtn = Array.from(document.querySelectorAll('.mobile-nav-btn')).find(btn => btn.getAttribute('onclick').includes(tabId));
+      if (activeMobileBtn) {
+        activeMobileBtn.classList.replace('text-gray-500', 'text-neonPurple');
+      }
+
+      if (tabId === 'inventory') {
+        renderInventoryGrid();
+        updateInventoryStats();
+      } else if (tabId === 'upgrader') {
+        renderUpgraderWorkspace();
+      } else if (tabId === 'contracts') {
+        renderContractsWorkspace();
+      } else if (tabId === 'bonuses') {
+        updateDailyBonusCountdown();
+      }
+    }
+
+    // ----------------------------------------------------
+    // USERNAME & AVATAR GENERATION
+    // ----------------------------------------------------
+    function editUsername() {
+      const newName = prompt('Введите новый никнейм (макс. 15 символов):', STATE.username);
+      if (newName !== null) {
+        const trimmed = newName.trim();
+        if (trimmed.length > 0 && trimmed.length <= 15) {
+          STATE.username = trimmed;
+          saveState();
+          updateProfileDisplay();
+        } else {
+          alert('Никнейм должен содержать от 1 до 15 символов!');
+        }
+      }
+    }
+
+    function regenerateAvatar() {
+      STATE.avatarSeed = (STATE.avatarSeed + 1) % 5;
+      saveState();
+      renderAvatar();
+    }
+
+    function renderAvatar() {
+      const avatarSvg = document.getElementById('profile-avatar');
+      let colors = {
+        head: '#facc15',
+        eyes: '#000000',
+        mouth: '#000000',
+        hat: '#ec4899',
+        logo: '#a855f7'
+      };
+
+      switch (STATE.avatarSeed) {
+        case 1:
+          colors.head = '#facc15';
+          colors.hat = '#ec4899';
+          colors.logo = '#06b6d4';
+          break;
+        case 2:
+          colors.head = '#3b82f6';
+          colors.hat = '#10b981';
+          colors.logo = '#f59e0b';
+          break;
+        case 3:
+          colors.head = '#ec4899';
+          colors.hat = '#a855f7';
+          colors.logo = '#ffffff';
+          break;
+        case 4:
+          colors.head = '#10b981';
+          colors.hat = '#f59e0b';
+          colors.logo = '#3b82f6';
+          break;
+        default:
+          colors.head = '#facc15';
+          colors.hat = '#2563eb';
+          colors.logo = '#ef4444';
+      }
+
+      avatarSvg.innerHTML = `
+        <rect x="25" y="25" width="50" height="50" rx="10" fill="${colors.head}"/>
+        <rect x="38" y="42" width="6" height="8" rx="2" fill="${colors.eyes}"/>
+        <rect x="56" y="42" width="6" height="8" rx="2" fill="${colors.eyes}"/>
+        <path d="M41 58 C 45 64, 55 64, 59 58" stroke="${colors.mouth}" stroke-width="4" stroke-linecap="round"/>
+        <path d="M20 30 L80 30 L72 18 L28 18 Z" fill="${colors.hat}"/>
+        <circle cx="50" cy="24" r="3" fill="${colors.logo}"/>
+      `;
+    }
+
+    // ----------------------------------------------------
+    // DAILY BONUS & FREE CASE SYSTEM
+    // ----------------------------------------------------
+    const FREE_CASE_ITEMS = [
+      { id: 'fc_common', name: 'Обычные семена', price: 5, chance: 50.0, rarity: 'common', rarityText: 'Обычное', color: '#94a3b8', icon: '🌰', caseName: 'Бесплатный' },
+      { id: 'fc_uncommon', name: 'Муравей', price: 8, chance: 30.0, rarity: 'uncommon', rarityText: 'Необычное', color: '#3b82f6', icon: '🐜', caseName: 'Бесплатный' },
+      { id: 'fc_rare', name: 'Common Knife', price: 100, chance: 18.0, rarity: 'rare', rarityText: 'Редкое', color: '#8b5cf6', icon: '🔪', caseName: 'Бесплатный' },
+      { id: 'fc_classified', name: 'Plastic Rod', price: 250, chance: 1.5, rarity: 'classified', rarityText: 'Засекреченное', color: '#ec4899', icon: '🎣', caseName: 'Бесплатный' },
+      { id: 'fc_legendary', name: 'Neon Katana', price: 480, chance: 0.5, rarity: 'legendary', rarityText: 'Мифическое', color: '#f59e0b', icon: '⚔️', caseName: 'Бесплатный' }
+    ];
+
+    let isFreeCaseSpinning = false;
+    let freeCaseWinningItem = null;
+
+    function updateDailyBonusCountdown() {
+      const now = Date.now();
+      const cooldown = 24 * 60 * 60 * 1000;
+
+      // 1. Daily Currency Reward Timer
+      const rewardBtn = document.getElementById('bonus-daily-claim-btn');
+      const rewardTimer = document.getElementById('bonus-daily-timer');
+      if (rewardBtn && rewardTimer) {
+        const lastReward = STATE.lastDailyBonus;
+        if (lastReward && now - lastReward < cooldown) {
+          rewardBtn.disabled = true;
+          rewardBtn.className = "w-full py-4 bg-slate-850 text-slate-500 font-black text-sm rounded-2xl cursor-not-allowed border border-slate-800";
+          rewardBtn.innerText = "Забрано";
+          rewardTimer.classList.remove('hidden');
+
+          const diff = cooldown - (now - lastReward);
+          const hours = Math.floor(diff / 3600000);
+          const mins = Math.floor((diff % 3600000) / 60000);
+          const secs = Math.floor((diff % 60000) / 1000);
+          rewardTimer.innerText = `До следующей награды: ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        } else {
+          rewardBtn.disabled = false;
+          rewardBtn.className = "w-full py-4 bg-gradient-to-r from-neonPurple to-neonPink text-white font-black text-sm rounded-2xl shadow-lg shadow-neonPurple/25 hover:shadow-neonPurple/45 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200";
+          rewardBtn.innerText = "Забрать +100 Баксов";
+          rewardTimer.classList.add('hidden');
+        }
+      }
+
+      // 2. Free Case Timer
+      const caseBtn = document.getElementById('bonus-case-claim-btn');
+      const caseTimer = document.getElementById('bonus-case-timer');
+      if (caseBtn && caseTimer) {
+        const lastCase = STATE.lastFreeCase;
+        if (lastCase && now - lastCase < cooldown) {
+          caseBtn.disabled = true;
+          caseBtn.className = "w-full py-4 bg-slate-855 text-slate-500 font-black text-sm rounded-2xl cursor-not-allowed border border-slate-800";
+          caseBtn.innerText = "Открыто";
+          caseTimer.classList.remove('hidden');
+
+          const diff = cooldown - (now - lastCase);
+          const hours = Math.floor(diff / 3600000);
+          const mins = Math.floor((diff % 3600000) / 60000);
+          const secs = Math.floor((diff % 60000) / 1000);
+          caseTimer.innerText = `До следующего открытия: ${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        } else {
+          caseBtn.disabled = false;
+          caseBtn.className = "w-full py-4 bg-gradient-to-r from-neonCyan to-blue-500 text-white font-black text-sm rounded-2xl shadow-lg shadow-neonCyan/25 hover:shadow-neonCyan/45 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200";
+          caseBtn.innerText = "Открыть бесплатно";
+          caseTimer.classList.add('hidden');
+        }
+      }
+    }
+
+    function claimDailyBonusReward() {
+      const now = Date.now();
+      const cooldown = 24 * 60 * 60 * 1000;
+      const lastClaim = STATE.lastDailyBonus;
+
+      if (lastClaim && now - lastClaim < cooldown) {
+        alert('Вы уже забрали ежедневный бонус!');
+        return;
+      }
+
+      STATE.balance += 100;
+      STATE.lastDailyBonus = now;
+      saveState();
+      updateBalanceDisplay();
+      updateDailyBonusCountdown();
+      
+      AudioSynth.playBonus();
+      createCelebrationParticles(document.getElementById('bonus-daily-claim-btn'));
+      alert('🎁 Вы успешно забрали +100 Баксов!');
+    }
+
+    function openFreeDailyCase() {
+      if (isFreeCaseSpinning) return;
+      
+      const now = Date.now();
+      const cooldown = 24 * 60 * 60 * 1000;
+      const lastClaim = STATE.lastFreeCase;
+
+      if (lastClaim && now - lastClaim < cooldown) {
+        alert('Вы уже открыли бесплатный кейс сегодня!');
+        return;
+      }
+
+      isFreeCaseSpinning = true;
+      STATE.lastFreeCase = now;
+      saveState();
+      updateDailyBonusCountdown();
+
+      // Determine winning item based on chances
+      const rand = Math.random() * 100;
+      let cumulative = 0;
+      freeCaseWinningItem = FREE_CASE_ITEMS[0];
+      for (const item of FREE_CASE_ITEMS) {
+        cumulative += item.chance;
+        if (rand <= cumulative) {
+          freeCaseWinningItem = item;
+          break;
+        }
+      }
+
+      // Show roulette section
+      const rouletteSec = document.getElementById('free-case-roulette-section');
+      rouletteSec.classList.remove('hidden');
+      rouletteSec.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      const strip = document.getElementById('free-case-roulette-strip');
+      strip.style.transition = 'none';
+      strip.style.transform = 'translateX(0px)';
+      strip.innerHTML = '';
+
+      const totalItems = 45;
+      const winningIndex = 38;
+
+      const stripArray = [];
+      for (let i = 0; i < totalItems; i++) {
+        if (i === winningIndex) {
+          stripArray.push(freeCaseWinningItem);
+        } else {
+          const randomItem = FREE_CASE_ITEMS[Math.floor(Math.random() * FREE_CASE_ITEMS.length)];
+          stripArray.push(randomItem);
+        }
+      }
+
+      stripArray.forEach(item => {
+        strip.appendChild(createRouletteItemCard(item));
+      });
+
+      const itemWidth = 110;
+      const gap = 8;
+      const cardFullWidth = itemWidth + gap;
+
+      setTimeout(() => {
+        const containerWidth = strip.parentElement.clientWidth || 800;
+        const targetCenter = (winningIndex * cardFullWidth) + (itemWidth / 2) + 8;
+        const randomShift = (Math.random() * 80) - 40;
+        const finalX = (containerWidth / 2) - targetCenter + randomShift;
+
+        strip.style.transition = 'transform 4s cubic-bezier(0.08, 0.82, 0.17, 1)';
+        strip.style.transform = `translateX(${finalX}px)`;
+
+        let currentPassed = 0;
+        const tickInterval = setInterval(() => {
+          if (!isFreeCaseSpinning) {
+            clearInterval(tickInterval);
+            return;
+          }
+
+          const matrix = new WebKitCSSMatrix(window.getComputedStyle(strip).transform);
+          const currentTranslateX = matrix.m41;
+          const passed = Math.floor(((containerWidth / 2) - currentTranslateX) / cardFullWidth);
+          if (passed > currentPassed && passed < totalItems) {
+            currentPassed = passed;
+            AudioSynth.playTick();
+          }
+        }, 35);
+
+        setTimeout(() => {
+          clearInterval(tickInterval);
+          isFreeCaseSpinning = false;
+          
+          // Add to inventory
+          const itemWithId = {
+            ...freeCaseWinningItem,
+            instanceId: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7)
+          };
+          STATE.inventory.push(itemWithId);
+          saveState();
+
+          // Live Drop
+          addLiveDrop(freeCaseWinningItem, true);
+
+          // Render inventory
+          renderInventoryGrid();
+          updateInventoryStats();
+
+          // Show win popup
+          rouletteWinningItem = freeCaseWinningItem;
+          showWinOverlay();
+
+          // Hide roulette section after brief delay
+          setTimeout(() => {
+            rouletteSec.classList.add('hidden');
+          }, 3000);
+
+        }, 4000);
+
+      }, 50);
+    }
+
+    // ----------------------------------------------------
+    // CASE OPENING (ROULETTE)
+    // ----------------------------------------------------
+    let currentCaseOpened = null;
+    let rouletteWinningItem = null;
+    let isSpinning = false;
+
+    function openCaseModal(caseId) {
+      if (isSpinning) return;
+      
+      currentCaseOpened = CASES.find(c => c.id === caseId);
+      if (!currentCaseOpened) return;
+
+      document.getElementById('case-modal-title').innerText = currentCaseOpened.name;
+      document.getElementById('case-modal-price').innerText = `${currentCaseOpened.price} B$`;
+      
+      const strip = document.getElementById('roulette-strip');
+      strip.style.transition = 'none';
+      strip.style.transform = 'translateX(0px)';
+      strip.innerHTML = '';
+      
+      for (let i = 0; i < 5; i++) {
+        const mockItem = currentCaseOpened.items[i % currentCaseOpened.items.length];
+        strip.appendChild(createRouletteItemCard(mockItem));
+      }
+
+      document.getElementById('case-modal').classList.remove('hidden');
+    }
+
+    function closeCaseModal() {
+      if (isSpinning) return;
+      document.getElementById('case-modal').classList.add('hidden');
+      currentCaseOpened = null;
+    }
+
+    function createRouletteItemCard(item) {
+      const card = document.createElement('div');
+      card.className = `w-[110px] h-[110px] shrink-0 bg-panelBg border border-borderPurple/60 rounded-2xl flex flex-col items-center justify-center p-2 relative overflow-hidden text-center`;
+      card.style.boxShadow = `inset 0 0 15px ${item.color}18`;
+      
+      const style = getRarityStyle(item.rarity);
+      card.style.borderColor = style.color + '44';
+
+      card.innerHTML = `
+        <div class="text-3.5xl mb-1 select-none">${item.icon}</div>
+        <span class="text-[9px] font-extrabold text-white truncate max-w-full leading-tight block">${item.name}</span>
+        <span class="text-[8px] font-bold text-gray-400 mt-0.5">${item.price} B$</span>
+        <div class="absolute bottom-0 left-0 right-0 h-1" style="background-color: ${style.color}"></div>
+      `;
+      return card;
+    }
+
+    function getWeightedDrop(caseObj) {
+      // 1. Check if Admin Rigging / Testing Mode is active
+      if (STATE.adminRigging) {
+        if (STATE.adminRiggingMode === 'trash') {
+          const commons = caseObj.items.filter(item => item.rarity === 'common');
+          if (commons.length > 0) {
+            return commons[Math.floor(Math.random() * commons.length)];
+          }
+          // If no commons (premium cases), fallback to uncommon
+          const uncommons = caseObj.items.filter(item => item.rarity === 'uncommon');
+          return uncommons[Math.floor(Math.random() * uncommons.length)] || caseObj.items[0];
+        } else if (STATE.adminRiggingMode === 'rare') {
+          const rares = caseObj.items.filter(item => item.rarity === 'rare' || item.rarity === 'classified' || item.rarity === 'uncommon');
+          return rares[Math.floor(Math.random() * rares.length)] || caseObj.items[0];
+        } else if (STATE.adminRiggingMode === 'mythical') {
+          const mythics = caseObj.items.filter(item => item.rarity === 'legendary' || item.rarity === 'mythic' || item.rarity === 'secret');
+          return mythics[Math.floor(Math.random() * mythics.length)] || caseObj.items[0];
+        }
+      }
+
+      // 2. Default weighted math
+      const rand = Math.random() * 100;
+      let cumulative = 0;
+      for (const item of caseObj.items) {
+        cumulative += item.chance;
+        if (rand <= cumulative) {
+          return item;
+        }
+      }
+      return caseObj.items[0];
+    }
+
+    function startSpin() {
+      if (isSpinning || !currentCaseOpened) return;
+
+      if (STATE.balance < currentCaseOpened.price) {
+        alert('Недостаточно Баксов для открытия этого кейса!');
+        return;
+      }
+
+      STATE.balance -= currentCaseOpened.price;
+      STATE.stats.totalOpened += 1;
+      saveState();
+      updateBalanceDisplay();
+
+      isSpinning = true;
+      document.getElementById('spin-button').disabled = true;
+      document.getElementById('spin-button').classList.add('opacity-50', 'cursor-not-allowed');
+
+      rouletteWinningItem = getWeightedDrop(currentCaseOpened);
+
+      const fastOpen = document.getElementById('fast-open-checkbox').checked;
+      
+      if (fastOpen) {
+        showWinOverlay();
+        isSpinning = false;
+        document.getElementById('spin-button').disabled = false;
+        document.getElementById('spin-button').classList.remove('opacity-50', 'cursor-not-allowed');
+        return;
+      }
+
+      const strip = document.getElementById('roulette-strip');
+      strip.style.transition = 'none';
+      strip.style.transform = 'translateX(0px)';
+      strip.innerHTML = '';
+
+      const totalItems = 45;
+      const winningIndex = 38;
+      
+      const stripArray = [];
+      for (let i = 0; i < totalItems; i++) {
+        if (i === winningIndex) {
+          stripArray.push(rouletteWinningItem);
+        } else {
+          const randomItem = currentCaseOpened.items[Math.floor(Math.random() * currentCaseOpened.items.length)];
+          stripArray.push(randomItem);
+        }
+      }
+
+      stripArray.forEach(item => {
+        strip.appendChild(createRouletteItemCard(item));
+      });
+
+      const itemWidth = 110;
+      const gap = 8;
+      const cardFullWidth = itemWidth + gap;
+      
+      const modalWidth = strip.parentElement.clientWidth;
+      const targetCenter = (winningIndex * cardFullWidth) + (itemWidth / 2) + 8;
+      const randomShift = (Math.random() * 80) - 40;
+      const finalX = (modalWidth / 2) - targetCenter + randomShift;
+
+      setTimeout(() => {
+        strip.style.transition = 'transform 4s cubic-bezier(0.08, 0.82, 0.17, 1)';
+        strip.style.transform = `translateX(${finalX}px)`;
+        
+        let currentPassed = 0;
+        const tickInterval = setInterval(() => {
+          if (!isSpinning) {
+            clearInterval(tickInterval);
+            return;
+          }
+          
+          const matrix = new WebKitCSSMatrix(window.getComputedStyle(strip).transform);
+          const currentTranslateX = matrix.m41;
+          const passed = Math.floor(((modalWidth / 2) - currentTranslateX) / cardFullWidth);
+          if (passed > currentPassed && passed < totalItems) {
+            currentPassed = passed;
+            AudioSynth.playTick();
+          }
+        }, 35);
+
+        setTimeout(() => {
+          clearInterval(tickInterval);
+          showWinOverlay();
+          isSpinning = false;
+          document.getElementById('spin-button').disabled = false;
+          document.getElementById('spin-button').classList.remove('opacity-50', 'cursor-not-allowed');
+        }, 4000);
+
+      }, 50);
+    }
+
+    // ----------------------------------------------------
+    // WIN OVERLAY POPUP
+    // ----------------------------------------------------
+    function showWinOverlay() {
+      const modal = document.getElementById('win-modal');
+      const content = document.getElementById('win-modal-content');
+      
+      document.getElementById('win-item-icon').innerText = rouletteWinningItem.icon;
+      document.getElementById('win-item-name').innerText = rouletteWinningItem.name;
+      document.getElementById('win-item-price').innerText = `${rouletteWinningItem.price} B$`;
+      document.getElementById('win-sell-price').innerText = `${rouletteWinningItem.price} B$`;
+
+      const rarityBadge = document.getElementById('win-item-rarity');
+      rarityBadge.innerText = rouletteWinningItem.rarityText;
+      
+      const card = document.getElementById('win-item-card');
+      const style = getRarityStyle(rouletteWinningItem.rarity);
+      
+      card.className = `bg-darkBg border rounded-2xl p-6 mb-6 inline-flex flex-col items-center justify-center w-full max-w-[200px] aspect-square shadow-2xl relative overflow-hidden border-borderPurple/50 ${style.glowClass}`;
+      card.style.borderColor = style.color + '44';
+      rarityBadge.className = `px-2.5 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider mb-2 ${style.textClass} border`;
+      rarityBadge.style.borderColor = style.color + '33';
+
+      // Prepend to Live Drops immediately!
+      addLiveDrop(rouletteWinningItem, true);
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        content.classList.remove('scale-90', 'opacity-0');
+        content.classList.add('scale-100', 'opacity-100');
+      }, 50);
+
+      AudioSynth.playWin(rouletteWinningItem.rarity);
+      createExplosionParticles(document.getElementById('win-item-card'), style.color);
+    }
+
+    function sellWonItem() {
+      if (!rouletteWinningItem) return;
+      
+      // If it's already in the inventory (e.g. from contract), remove it
+      const idx = STATE.inventory.findIndex(i => i.instanceId === rouletteWinningItem.instanceId);
+      if (idx > -1) {
+        STATE.inventory.splice(idx, 1);
+      }
+      
+      STATE.balance += rouletteWinningItem.price;
+      saveState();
+      updateBalanceDisplay();
+      closeWinModal();
+    }
+
+    // Keep item in inventory
+    function keepWonItem() {
+      if (!rouletteWinningItem) return;
+      
+      // If it's already in the inventory (e.g. from contract), we don't need to add it again!
+      const exists = STATE.inventory.some(i => i.instanceId === rouletteWinningItem.instanceId);
+      if (!exists) {
+        const itemWithId = {
+          ...rouletteWinningItem,
+          instanceId: rouletteWinningItem.instanceId || ('item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7))
+        };
+        STATE.inventory.push(itemWithId);
+        saveState();
+      }
+      closeWinModal();
+    }
+
+    function closeWinModal() {
+      const modal = document.getElementById('win-modal');
+      const content = document.getElementById('win-modal-content');
+      
+      content.classList.remove('scale-100', 'opacity-100');
+      content.classList.add('scale-90', 'opacity-0');
+      
+      setTimeout(() => {
+        modal.classList.add('hidden');
+        rouletteWinningItem = null;
+        closeCaseModal();
+      }, 250);
+    }
+
+    // ----------------------------------------------------
+    // FORGE OF EVOLUTION (UPGRADER)
+    // ----------------------------------------------------
+    let upgradeSourceItems = [];
+    let upgradeTargetItem = null;
+    let isUpgrading = false;
+
+    function renderUpgraderWorkspace() {
+      const srcCard = document.getElementById('upgrader-source-card');
+      const tgtCard = document.getElementById('upgrader-target-card');
+      const actionBtn = document.getElementById('upgrade-action-btn');
+      const warningEl = document.getElementById('upgrader-warning');
+      
+      const totalSourceVal = upgradeSourceItems.reduce((sum, i) => sum + i.price, 0);
+
+      // Render Left Slot (Source Items)
+      if (upgradeSourceItems.length > 0) {
+        let itemsHtml = '';
+        upgradeSourceItems.forEach(item => {
+          const style = getRarityStyle(item.rarity);
+          itemsHtml += `
+            <div class="flex items-center justify-between p-2 bg-panelBg/60 rounded-xl border border-borderPurple/30 mb-1.5 w-full">
+              <div class="flex items-center space-x-2 min-w-0">
+                <span class="text-sm select-none">${item.icon}</span>
+                <span class="text-[11px] font-bold truncate" style="color: ${style.color}">${item.name}</span>
+              </div>
+              <span class="text-[10px] font-black text-neonCyan shrink-0">${item.price} B$</span>
+            </div>
+          `;
+        });
+
+        srcCard.className = "w-full flex-1 flex flex-col items-stretch justify-start cursor-pointer border border-borderPurple rounded-2xl p-4 transition-all duration-200 bg-panelBg/80 overflow-y-auto max-h-[220px] no-scrollbar";
+        srcCard.style.borderColor = '#a855f744';
+        srcCard.innerHTML = `
+          <div class="text-center mb-3 shrink-0">
+            <span class="text-[10px] font-black text-gray-400 uppercase tracking-wider">Выбрано: ${upgradeSourceItems.length} предметов</span>
+            <div class="text-sm font-black text-neonCyan mt-0.5">${totalSourceVal} B$</div>
+          </div>
+          <div class="flex-1 w-full">
+            ${itemsHtml}
+          </div>
+          <div class="text-center shrink-0 mt-3 text-[9px] text-gray-500 hover:underline hover:text-neonPurple">Нажми для изменения</div>
+        `;
+      } else {
+        srcCard.className = "w-full flex-1 flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-borderPurple hover:border-neonPurple/50 rounded-2xl p-4 transition-all duration-200 group bg-panelBg/20 hover:bg-panelBg/40";
+        srcCard.style.borderColor = '';
+        srcCard.innerHTML = `
+          <div class="text-4xl mb-4 group-hover:scale-110 transition duration-200 select-none">🎒</div>
+          <span class="text-sm font-bold text-white group-hover:text-neonPurple transition">Выбрать из инвентаря</span>
+          <span class="text-xs text-gray-500 mt-1">Кликни, чтобы выбрать предметы</span>
+        `;
+      }
+
+      // Render Right Slot (Target Item)
+      if (upgradeTargetItem) {
+        const style = getRarityStyle(upgradeTargetItem.rarity);
+        tgtCard.className = "w-full flex-1 flex flex-col items-center justify-center cursor-pointer border border-borderPurple rounded-2xl p-6 transition-all duration-200 bg-panelBg/80 " + style.glowClass;
+        tgtCard.style.borderColor = style.color + '44';
+        tgtCard.innerHTML = `
+          <div class="text-6xl mb-4 animate-float select-none">${upgradeTargetItem.icon}</div>
+          <span class="text-xs font-black uppercase tracking-widest" style="color: ${style.color}">${upgradeTargetItem.rarityText}</span>
+          <h4 class="font-extrabold text-white text-base mt-1 truncate max-w-full">${upgradeTargetItem.name}</h4>
+          <span class="text-sm font-black text-neonCyan mt-2">${upgradeTargetItem.price} B$</span>
+          <span class="text-[10px] text-gray-500 mt-2 hover:underline hover:text-red-400">Нажми для замены</span>
+        `;
+      } else {
+        tgtCard.className = "w-full flex-1 flex flex-col items-center justify-center cursor-pointer border-2 border-dashed border-borderPurple hover:border-neonCyan/50 rounded-2xl p-6 transition-all duration-200 group bg-panelBg/20 hover:bg-panelBg/40 mb-4";
+        tgtCard.style.borderColor = '';
+        tgtCard.innerHTML = `
+          <div class="text-4xl mb-4 group-hover:scale-110 transition duration-200 select-none">✨</div>
+          <span class="text-sm font-bold text-white group-hover:text-neonCyan transition">Выбрать цель</span>
+          <span class="text-xs text-gray-500 mt-1">Кликни, чтобы выбрать цель</span>
+        `;
+      }
+
+      // Calculate Chance
+      let chance = 0;
+      if (totalSourceVal > 0 && upgradeTargetItem) {
+        chance = (totalSourceVal / upgradeTargetItem.price) * 100;
+        if (chance > 75) chance = 75; // strict 75% limit
+      }
+
+      const chanceText = document.getElementById('upgrader-chance-text');
+      chanceText.innerText = chance.toFixed(1) + '%';
+      
+      const outerWheel = document.getElementById('upgrader-wheel-outer');
+      if (outerWheel) {
+        outerWheel.style.background = `conic-gradient(#10b981 0% ${chance}%, #7f1d1d ${chance}% 100%)`;
+      }
+      
+      const arrow = document.getElementById('upgrader-arrow-wrapper');
+      if (arrow && !isUpgrading) {
+        arrow.style.transition = 'none';
+        arrow.style.transform = 'rotate(0deg)';
+      }
+
+      // Warnings and Button States
+      let canUpgrade = true;
+      let warningText = '';
+
+      if (upgradeSourceItems.length === 0 || !upgradeTargetItem) {
+        canUpgrade = false;
+      } else if (totalSourceVal >= upgradeTargetItem.price) {
+        canUpgrade = false;
+        warningText = 'Целевой предмет должен быть дороже вашей ставки!';
+      }
+
+      if (warningText) {
+        warningEl.innerText = warningText;
+        warningEl.classList.remove('hidden');
+      } else {
+        warningEl.classList.add('hidden');
+      }
+
+      if (canUpgrade && !isUpgrading) {
+        actionBtn.disabled = false;
+      } else {
+        actionBtn.disabled = true;
+      }
+    }
+
+    function openInventorySelector() {
+      if (isUpgrading) return;
+      const modal = document.getElementById('inv-selector-modal');
+      const grid = document.getElementById('inv-selector-grid');
+      grid.innerHTML = '';
+
+      // Update counters in header
+      const updateHeaderCounters = () => {
+        const count = upgradeSourceItems.length;
+        const total = upgradeSourceItems.reduce((sum, i) => sum + i.price, 0);
+        document.getElementById('inv-selector-count').innerText = count;
+        document.getElementById('inv-selector-total').innerText = total.toLocaleString('en-US');
+      };
+      updateHeaderCounters();
+
+      if (STATE.inventory.length === 0) {
+        grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-500 text-sm">Твой инвентарь пуст. Сначала открой кейсы!</div>';
+      } else {
+        const sortedInv = [...STATE.inventory].sort((a, b) => b.price - a.price);
+        sortedInv.forEach(item => {
+          const isSelected = upgradeSourceItems.some(i => i.instanceId === item.instanceId);
+          const card = document.createElement('div');
+          const style = getRarityStyle(item.rarity);
+          
+          card.className = `bg-panelBg/60 border rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition relative select-none ${isSelected ? 'border-neonPurple bg-panelBg' : 'border-borderPurple/50 hover:border-neonPurple/50'}`;
+          card.style.borderColor = isSelected ? '' : style.color + '22';
+          
+          card.innerHTML = `
+            <div class="absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded border flex items-center justify-center transition ${isSelected ? 'bg-neonPurple border-neonPurple text-white' : 'border-borderPurple/80 bg-darkBg text-transparent'}">
+              <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div class="text-3.5xl mb-1">${item.icon}</div>
+            <span class="text-[9px] font-bold uppercase tracking-wider" style="color: ${style.color}">${item.rarityText}</span>
+            <h5 class="text-xs font-extrabold text-white truncate max-w-full leading-tight block pr-4">${item.name}</h5>
+            <span class="text-xs font-black text-neonCyan mt-1">${item.price} B$</span>
+          `;
+
+          card.onclick = () => {
+            const idx = upgradeSourceItems.findIndex(i => i.instanceId === item.instanceId);
+            if (idx > -1) {
+              // Deselect
+              upgradeSourceItems.splice(idx, 1);
+              card.className = `bg-panelBg/60 border border-borderPurple/50 hover:border-neonPurple/50 rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition relative select-none`;
+              card.style.borderColor = style.color + '22';
+              const chk = card.querySelector('.absolute');
+              chk.className = 'absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded border border-borderPurple/80 bg-darkBg text-transparent flex items-center justify-center transition';
+            } else {
+              // Select - Enforce 75% limit if target item is selected
+              if (upgradeTargetItem) {
+                const currentSum = upgradeSourceItems.reduce((sum, i) => sum + i.price, 0);
+                const nextSum = currentSum + item.price;
+                const nextChance = (nextSum / upgradeTargetItem.price) * 100;
+                if (nextChance > 75) {
+                  alert("Максимальный шанс апгрейда — 75%!");
+                  return;
+                }
+              }
+              
+              upgradeSourceItems.push(item);
+              card.className = `bg-panelBg/60 border border-neonPurple bg-panelBg rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition relative select-none`;
+              card.style.borderColor = '';
+              const chk = card.querySelector('.absolute');
+              chk.className = 'absolute top-1.5 right-1.5 w-3.5 h-3.5 rounded border border-neonPurple bg-neonPurple text-white flex items-center justify-center transition';
+            }
+            updateHeaderCounters();
+            renderUpgraderWorkspace();
+          };
+          grid.appendChild(card);
+        });
+      }
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeInventorySelector() {
+      document.getElementById('inv-selector-modal').classList.add('hidden');
+    }
+
+    function openTargetSelector() {
+      if (isUpgrading) return;
+      const modal = document.getElementById('target-selector-modal');
+      const grid = document.getElementById('target-selector-grid');
+      grid.innerHTML = '';
+
+      const totalSourceVal = upgradeSourceItems.reduce((sum, i) => sum + i.price, 0);
+
+      ALL_ITEMS.forEach(item => {
+        // Target item must be strictly more expensive than the bet
+        const isTooCheap = totalSourceVal > 0 && item.price <= totalSourceVal;
+        
+        const card = document.createElement('div');
+        const style = getRarityStyle(item.rarity);
+        
+        card.className = `bg-panelBg/60 border rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition ${style.glowClass} ${isTooCheap ? 'opacity-40 pointer-events-none' : ''}`;
+        card.style.borderColor = style.color + '22';
+        
+        card.innerHTML = `
+          <div class="text-3.5xl mb-1">${item.icon}</div>
+          <span class="text-[9px] font-bold uppercase tracking-wider" style="color: ${style.color}">${item.rarityText}</span>
+          <h5 class="text-xs font-extrabold text-white truncate max-w-full">${item.name}</h5>
+          <span class="text-xs font-black text-neonCyan mt-1">${item.price} B$</span>
+          <span class="text-[8px] text-gray-500 mt-1">${item.caseName}</span>
+        `;
+        
+        if (!isTooCheap) {
+          card.onclick = () => {
+            upgradeTargetItem = item;
+            closeTargetSelector();
+            renderUpgraderWorkspace();
+          };
+        }
+        
+        grid.appendChild(card);
+      });
+
+      modal.classList.remove('hidden');
+    }
+
+    function closeTargetSelector() {
+      document.getElementById('target-selector-modal').classList.add('hidden');
+    }
+
+
+
+    function startUpgrade() {
+      if (isUpgrading || upgradeSourceItems.length === 0 || !upgradeTargetItem) return;
+
+      const totalSourceVal = upgradeSourceItems.reduce((sum, i) => sum + i.price, 0);
+      if (totalSourceVal >= upgradeTargetItem.price) {
+        alert('Целевой предмет должен быть дороже вашей ставки!');
+        return;
+      }
+
+      isUpgrading = true;
+      document.getElementById('upgrade-action-btn').disabled = true;
+      
+      let chance = (totalSourceVal / upgradeTargetItem.price) * 100;
+      if (chance > 75) chance = 75;
+
+      // Determine success state first
+      const roll = Math.random() * 100;
+      let success = roll <= chance;
+      if (STATE.adminUpgradeRig) {
+        success = true;
+      }
+
+      // Pick target angle for the arrow
+      let targetAngle = 0;
+      if (success) {
+        // Land in green sector: [3, chance * 3.6 - 3]
+        const minAngle = 3;
+        const maxAngle = chance * 3.6 - 3;
+        if (maxAngle > minAngle) {
+          targetAngle = minAngle + Math.random() * (maxAngle - minAngle);
+        } else {
+          targetAngle = (chance * 3.6) / 2;
+        }
+      } else {
+        // Land in red sector: [chance * 3.6 + 3, 357]
+        const minAngle = chance * 3.6 + 3;
+        const maxAngle = 357;
+        if (maxAngle > minAngle) {
+          targetAngle = minAngle + Math.random() * (maxAngle - minAngle);
+        } else {
+          targetAngle = chance * 3.6 + (360 - chance * 3.6) / 2;
+        }
+      }
+
+      const totalRotation = 1800 + targetAngle; // 5 full spins + target angle
+      const arrow = document.getElementById('upgrader-arrow-wrapper');
+      
+      // Reset rotation instantly
+      arrow.style.transition = 'none';
+      arrow.style.transform = 'rotate(0deg)';
+      arrow.offsetHeight; // force reflow
+
+      // Trigger spin
+      setTimeout(() => {
+        arrow.style.transition = 'transform 4s cubic-bezier(0.15, 0.85, 0.2, 1)';
+        arrow.style.transform = `rotate(${totalRotation}deg)`;
+        AudioSynth.playUpgrade();
+
+        setTimeout(() => {
+          resolveUpgrade(success);
+        }, 4000);
+      }, 20);
+    }
+
+    function resolveUpgrade(success) {
+      isUpgrading = false;
+
+      // Remove all selected source items from inventory
+      const sourceIds = new Set(upgradeSourceItems.map(i => i.instanceId));
+      STATE.inventory = STATE.inventory.filter(item => !sourceIds.has(item.instanceId));
+
+      if (success) {
+        const newItem = {
+          ...upgradeTargetItem,
+          instanceId: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7)
+        };
+        STATE.inventory.push(newItem);
+        
+        STATE.stats.totalUpgraded += 1;
+        STATE.stats.successfulUpgrades += 1;
+        saveState();
+
+        const style = getRarityStyle(upgradeTargetItem.rarity);
+        AudioSynth.playWin(upgradeTargetItem.rarity);
+        createExplosionParticles(document.getElementById('upgrader-target-card'), style.color);
+        
+        // Add to Live Drops!
+        addLiveDrop(upgradeTargetItem, true);
+
+        alert(`🔥 УСПЕХ! Предмет успешно улучшен до: ${upgradeTargetItem.name}!`);
+        
+        upgradeSourceItems = [];
+        upgradeTargetItem = null;
+      } else {
+        STATE.stats.totalUpgraded += 1;
+        saveState();
+
+        AudioSynth.playFail();
+        createExplosionParticles(document.getElementById('upgrader-source-card'), '#ef4444');
+        alert(`💔 НЕУДАЧА! Все выбранные предметы сгорели в Кузнице Эволюции.`);
+        
+        upgradeSourceItems = [];
+      }
+
+      renderInventoryGrid();
+      updateInventoryStats();
+      renderUpgraderWorkspace();
+    }
+
+    // ----------------------------------------------------
+    // CONTRACTS (ITEM FUSION)
+    // ----------------------------------------------------
+    let selectedContractItems = [];
+
+    function renderContractsWorkspace() {
+      const grid = document.getElementById('contract-inventory-grid');
+      grid.innerHTML = '';
+
+      if (STATE.inventory.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-12 text-center text-gray-500 text-sm">В инвентаре пусто. Сначала открой кейсы!</div>';
+        updateContractsSummary();
+        return;
+      }
+
+      STATE.inventory.forEach(item => {
+        const isSelected = selectedContractItems.includes(item.instanceId);
+        
+        const card = document.createElement('div');
+        card.className = `bg-panelBg/60 border rounded-xl p-3 flex flex-col items-center justify-center text-center cursor-pointer transition relative select-none ${isSelected ? 'border-neonPurple bg-panelBg' : 'border-borderPurple/50 hover:border-neonPurple/50'}`;
+        
+        card.innerHTML = `
+          <div class="absolute top-2 right-2 w-4 h-4 rounded border flex items-center justify-center transition ${isSelected ? 'bg-neonPurple border-neonPurple text-white' : 'border-borderPurple/80 bg-darkBg text-transparent'}">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+          </div>
+
+          <div class="text-3.5xl mb-1">${item.icon}</div>
+          <h5 class="text-xs font-extrabold text-white truncate max-w-full leading-tight block pr-4">${item.name}</h5>
+          <span class="text-xs font-black text-neonCyan mt-1">${item.price} B$</span>
+        `;
+
+        card.onclick = () => {
+          toggleContractItem(item.instanceId);
+        };
+
+        grid.appendChild(card);
+      });
+
+      updateContractsSummary();
+    }
+
+    function toggleContractItem(instanceId) {
+      const index = selectedContractItems.indexOf(instanceId);
+      if (index > -1) {
+        selectedContractItems.splice(index, 1);
+      } else {
+        if (selectedContractItems.length >= 10) {
+          alert('Нельзя выбрать больше 10 предметов для одного слияния!');
+          return;
+        }
+        selectedContractItems.push(instanceId);
+      }
+      renderContractsWorkspace();
+    }
+
+    function clearContractSelection() {
+      selectedContractItems = [];
+      renderContractsWorkspace();
+    }
+
+    function updateContractsSummary() {
+      const countEl = document.getElementById('contracts-count');
+      const totalValEl = document.getElementById('contracts-total-value');
+      const minValEl = document.getElementById('contracts-min-val');
+      const maxValEl = document.getElementById('contracts-max-val');
+      const fuseBtn = document.getElementById('contracts-fuse-btn');
+
+      const count = selectedContractItems.length;
+      countEl.innerText = `${count} / 10`;
+
+      let totalVal = 0;
+      selectedContractItems.forEach(instId => {
+        const item = STATE.inventory.find(i => i.instanceId === instId);
+        if (item) totalVal += item.price;
+      });
+
+      totalValEl.innerText = `${totalVal.toLocaleString('en-US')} B$`;
+      
+      const minVal = Math.floor(totalVal * 0.8);
+      const maxVal = Math.floor(totalVal * 1.5);
+
+      minValEl.innerText = `${minVal.toLocaleString('en-US')} B$`;
+      maxValEl.innerText = `${maxVal.toLocaleString('en-US')} B$`;
+
+      if (count >= 3 && count <= 10) {
+        fuseBtn.disabled = false;
+      } else {
+        fuseBtn.disabled = true;
+      }
+    }
+
+    function startFusion() {
+      const count = selectedContractItems.length;
+      if (count < 3 || count > 10) return;
+
+      const fuseBtn = document.getElementById('contracts-fuse-btn');
+      fuseBtn.disabled = true;
+
+      let totalValue = 0;
+      selectedContractItems.forEach(instId => {
+        const item = STATE.inventory.find(i => i.instanceId === instId);
+        if (item) totalValue += item.price;
+      });
+
+      const minVal = totalValue * 0.8;
+      const maxVal = totalValue * 1.5;
+
+      const targetPrice = minVal + Math.random() * (maxVal - minVal);
+
+      let chosenItem = ALL_ITEMS[0];
+      let smallestDiff = Infinity;
+      
+      let candidateItems = ALL_ITEMS;
+      if (STATE.adminContractsRig) {
+        // Filter candidates to only items strictly more expensive than the total input value
+        candidateItems = ALL_ITEMS.filter(item => item.price > totalValue);
+        if (candidateItems.length === 0) {
+          candidateItems = ALL_ITEMS; // fallback if no item is more expensive
+        }
+      }
+
+      candidateItems.forEach(item => {
+        const diff = Math.abs(item.price - targetPrice);
+        if (diff < smallestDiff) {
+          smallestDiff = diff;
+          chosenItem = item;
+        }
+      });
+
+      const gridContainer = document.getElementById('contract-inventory-grid');
+      gridContainer.style.pointerEvents = 'none';
+      
+      const vortex = document.createElement('div');
+      vortex.className = "fixed inset-0 bg-black/90 flex flex-col items-center justify-center z-50 transition-opacity duration-300";
+      vortex.innerHTML = `
+        <div class="w-48 h-48 rounded-full border-4 border-dashed border-neonPurple animate-vortex flex items-center justify-center shadow-[0_0_50px_rgba(168,85,247,0.5)]">
+          <div class="w-36 h-36 rounded-full border-4 border-dotted border-neonPink animate-glow-spin flex items-center justify-center">
+            <span class="text-5xl animate-bounce">🌀</span>
+          </div>
+        </div>
+        <h3 class="text-xl font-black text-white tracking-widest mt-8 animate-pulse">ИДЕТ СЛИЯНИЕ ПРЕДМЕТОВ...</h3>
+        <p class="text-xs text-gray-400 mt-2">Кузница сплавляет молекулы...</p>
+      `;
+      document.body.appendChild(vortex);
+
+      AudioSynth.playUpgrade();
+      
+      setTimeout(() => {
+        // 1. Remove selected items from inventory
+        selectedContractItems.forEach(instId => {
+          const idx = STATE.inventory.findIndex(i => i.instanceId === instId);
+          if (idx > -1) STATE.inventory.splice(idx, 1);
+        });
+
+        // 2. Generate new item
+        const fusedItem = {
+          ...chosenItem,
+          instanceId: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+          caseName: 'Слияние'
+        };
+
+        // 3. Add new item to inventory
+        STATE.inventory.push(fusedItem);
+        
+        STATE.stats.totalContracts += 1;
+        saveState();
+
+        selectedContractItems = [];
+
+        vortex.style.opacity = '0';
+        setTimeout(() => {
+          vortex.remove();
+          gridContainer.style.pointerEvents = 'auto';
+          
+          // Set winning item and show win overlay
+          rouletteWinningItem = fusedItem;
+          showWinOverlay();
+
+          // Re-render contracts workspace and inventory
+          renderContractsWorkspace();
+          renderInventoryGrid();
+          updateInventoryStats();
+        }, 300);
+
+      }, 2000);
+    }
+
+    // ----------------------------------------------------
+    // INVENTORY MANAGEMENT
+    // ----------------------------------------------------
+    let activeInventoryFilter = 'all';
+
+    function filterInventory(caseFilter) {
+      activeInventoryFilter = caseFilter;
+      
+      document.querySelectorAll('.inv-filter-btn').forEach(btn => {
+        btn.className = "inv-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-panelBg text-gray-400 hover:text-white transition-all";
+      });
+      
+      const activeBtn = document.getElementById('filter-' + caseFilter);
+      if (activeBtn) {
+        activeBtn.className = "inv-filter-btn px-4 py-2 rounded-xl text-xs font-bold bg-neonPurple text-white transition-all";
+      }
+
+      renderInventoryGrid();
+    }
+
+    function getFilteredInventory() {
+      if (activeInventoryFilter === 'all') {
+        return [...STATE.inventory];
+      }
+      return STATE.inventory.filter(item => item.caseId === activeInventoryFilter);
+    }
+
+    function sortInventory() {
+      renderInventoryGrid();
+    }
+
+    function renderInventoryGrid() {
+      const grid = document.getElementById('inventory-grid');
+      grid.innerHTML = '';
+
+      let items = getFilteredInventory();
+
+      if (items.length === 0) {
+        grid.innerHTML = '<div class="col-span-full py-20 text-center text-gray-500 text-sm">В этой категории нет предметов.</div>';
+        return;
+      }
+
+      const sortVal = document.getElementById('inventory-sort-select').value;
+      if (sortVal === 'price-desc') {
+        items.sort((a, b) => b.price - a.price);
+      } else if (sortVal === 'price-asc') {
+        items.sort((a, b) => a.price - b.price);
+      } else if (sortVal === 'rarity-desc') {
+        const rarityWeights = { legendary: 5, classified: 4, rare: 3, uncommon: 2, common: 1 };
+        items.sort((a, b) => {
+          if (rarityWeights[b.rarity] !== rarityWeights[a.rarity]) {
+            return rarityWeights[b.rarity] - rarityWeights[a.rarity];
+          }
+          return b.price - a.price;
+        });
+      }
+
+      items.forEach(item => {
+        const card = document.createElement('div');
+        const style = getRarityStyle(item.rarity);
+        card.className = `bg-panelBg/80 border rounded-2xl p-4 flex flex-col justify-between text-center relative overflow-hidden transition-all duration-300 hover:translate-y-[-4px] hover:shadow-lg ${style.glowClass}`;
+        card.style.borderColor = style.color + '33';
+
+        const isPending = item.status === 'pending';
+
+        card.innerHTML = `
+          <div class="${isPending ? 'opacity-60' : ''}">
+            <div class="flex justify-between items-center mb-2">
+              <span class="text-[8px] font-bold text-gray-500 truncate max-w-[60px] block">${item.caseName || 'Слияние'}</span>
+              <span class="text-[8px] px-1.5 py-0.5 rounded font-black uppercase tracking-wider ${style.textClass} border">${item.rarityText}</span>
+            </div>
+            <div class="text-4xl my-3 animate-float select-none">${item.icon}</div>
+            <h4 class="font-extrabold text-white text-sm truncate max-w-full leading-tight mb-1">${item.name}</h4>
+            <span class="text-xs font-black text-neonCyan block mb-4">${item.price} B$</span>
+          </div>
+          ${isPending ? `
+            <div class="w-full py-2 bg-orange-600/25 text-orange-400 border border-orange-500/35 rounded-xl text-[10px] font-black tracking-wide animate-pulse animate-duration-1000" id="timer-${item.instanceId}">
+              ⏳ Ожидание (Осталось: 30:00)
+            </div>
+          ` : `
+            <div class="flex space-x-2 w-full">
+              <button onclick="sellInventoryItem('${item.instanceId}')" class="flex-1 py-2 bg-darkBg hover:bg-red-950/40 hover:text-red-400 border border-borderPurple/40 hover:border-red-900/40 text-[10px] font-bold text-gray-400 rounded-xl transition">
+                Продать
+              </button>
+              <button onclick="openWithdrawModal('${item.instanceId}')" class="flex-1 py-2 bg-gradient-to-r from-robloxYellow to-yellow-500 hover:from-yellow-400 hover:to-yellow-600 text-darkBg text-[10px] font-extrabold rounded-xl shadow shadow-robloxYellow/35 hover:shadow-robloxYellow/50 transition">
+                Вывести
+              </button>
+            </div>
+          `}
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    function sellInventoryItem(instanceId) {
+      const idx = STATE.inventory.findIndex(i => i.instanceId === instanceId);
+      if (idx > -1) {
+        const item = STATE.inventory[idx];
+        STATE.balance += item.price;
+        STATE.inventory.splice(idx, 1);
+        
+        saveState();
+        updateBalanceDisplay();
+        
+        renderInventoryGrid();
+        updateInventoryStats();
+      }
+    }
+
+    function sellAllItems() {
+      let itemsToSell = getFilteredInventory().filter(item => item.status !== 'pending'); // don't sell pending items!
+      if (itemsToSell.length === 0) {
+        alert('Нет предметов для продажи!');
+        return;
+      }
+
+      const totalGain = itemsToSell.reduce((sum, item) => sum + item.price, 0);
+      
+      const confirmSell = confirm(`Вы уверены, что хотите продать все отфильтрованные доступные предметы (${itemsToSell.length} шт.) на сумму ${totalGain} B$?`);
+      if (!confirmSell) return;
+
+      const idsToSell = new Set(itemsToSell.map(i => i.instanceId));
+      STATE.inventory = STATE.inventory.filter(item => !idsToSell.has(item.instanceId));
+      
+      STATE.balance += totalGain;
+      saveState();
+      updateBalanceDisplay();
+      
+      renderInventoryGrid();
+      updateInventoryStats();
+      
+      AudioSynth.playBonus();
+    }
+
+    // ----------------------------------------------------
+    // ROBLOX WITHDRAW SYSTEM
+    // ----------------------------------------------------
+    let withdrawTargetInstanceId = null;
+    let withdrawIntervalId = null;
+
+    function openWithdrawModal(instanceId) {
+      const item = STATE.inventory.find(i => i.instanceId === instanceId);
+      if (!item) return;
+
+      withdrawTargetInstanceId = instanceId;
+      document.getElementById('withdraw-item-icon').innerText = item.icon;
+      document.getElementById('withdraw-item-name').innerText = item.name;
+      document.getElementById('withdraw-item-price').innerText = item.price;
+      document.getElementById('withdraw-roblox-username').value = '';
+      
+      document.getElementById('withdraw-modal').classList.remove('hidden');
+    }
+
+    function closeWithdrawModal() {
+      document.getElementById('withdraw-modal').classList.add('hidden');
+      withdrawTargetInstanceId = null;
+    }
+
+    function submitWithdraw() {
+      const username = document.getElementById('withdraw-roblox-username').value.trim();
+      if (!username) {
+        alert('Пожалуйста, введите никнейм в Roblox!');
+        return;
+      }
+
+      const item = STATE.inventory.find(i => i.instanceId === withdrawTargetInstanceId);
+      if (!item) return;
+
+      item.status = 'pending';
+      item.withdrawTime = Date.now();
+      item.withdrawUsername = username;
+
+      saveState();
+      closeWithdrawModal();
+      renderInventoryGrid();
+      updateInventoryStats();
+
+      // Push notification
+      alert('Заявка на вывод создана! Робаксы придут на ваш аккаунт в течение 30 минут');
+    }
+
+    function updateWithdrawTimers() {
+      let stateChanged = false;
+      const now = Date.now();
+
+      STATE.inventory.forEach((item) => {
+        if (item.status === 'pending') {
+          const elapsed = now - item.withdrawTime;
+          const remainingSecs = 1800 - Math.floor(elapsed / 1000); // 30 mins = 1800s
+
+          if (remainingSecs <= 0) {
+            // Cancel withdraw
+            delete item.status;
+            delete item.withdrawTime;
+            delete item.withdrawUsername;
+            
+            stateChanged = true;
+            alert(`❌ Вывод предмета "${item.name}" отменен. Предмет возвращен в инвентарь.`);
+          } else {
+            // Update UI timer text
+            const timerEl = document.getElementById(`timer-${item.instanceId}`);
+            if (timerEl) {
+              const mins = Math.floor(remainingSecs / 60);
+              const secs = remainingSecs % 60;
+              const formattedTime = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+              timerEl.innerText = `⏳ Ожидание (Осталось: ${formattedTime})`;
+            }
+          }
+        }
+      });
+
+      if (stateChanged) {
+        saveState();
+        renderInventoryGrid();
+        updateInventoryStats();
+        if (!document.getElementById('admin-modal').classList.contains('hidden')) {
+          renderAdminWithdrawals();
+        }
+      }
+    }
+
+    // Start global withdraw timer loop
+    function startWithdrawTimerLoop() {
+      if (withdrawIntervalId) clearInterval(withdrawIntervalId);
+      withdrawIntervalId = setInterval(updateWithdrawTimers, 1000);
+      updateWithdrawTimers(); // run once immediately
+    }
+
+    // Statistics update
+    function updateInventoryStats() {
+      document.getElementById('stats-inventory-count').innerText = STATE.inventory.length;
+      
+      const totalVal = STATE.inventory.reduce((sum, i) => sum + i.price, 0);
+      document.getElementById('stats-inventory-value').innerText = `${totalVal.toLocaleString('en-US')} B$`;
+
+      document.getElementById('stats-total-cases').innerText = STATE.stats.totalOpened;
+      
+      let winrate = 0;
+      if (STATE.stats.totalUpgraded > 0) {
+        winrate = (STATE.stats.successfulUpgrades / STATE.stats.totalUpgraded) * 100;
+      }
+      document.getElementById('stats-upgrade-winrate').innerText = `${winrate.toFixed(0)}%`;
+    }
+
+    // ----------------------------------------------------
+    // GENERAL UTILITIES & PARTICLES
+    // ----------------------------------------------------
+    function resetData() {
+      const check = confirm('Вы уверены, что хотите полностью сбросить весь прогресс, баланс и инвентарь? Это действие необратимо!');
+      if (!check) return;
+
+      localStorage.removeItem('bloxdrop_state_v1');
+      STATE = {
+        balance: 1000,
+        inventory: [],
+        stats: {
+          totalOpened: 0,
+          totalUpgraded: 0,
+          successfulUpgrades: 0,
+          totalContracts: 0
+        },
+        lastDailyBonus: null,
+        username: 'Robloxian_' + Math.floor(Math.random() * 9000 + 1000),
+        avatarSeed: 1,
+        adminRigging: false,
+        adminRiggingMode: 'trash'
+      };
+      saveState();
+      
+      updateBalanceDisplay();
+      updateProfileDisplay();
+      updateDailyBonusCountdown();
+      
+      upgradeSourceItem = null;
+      upgradeTargetItem = null;
+      selectedContractItems = [];
+
+      switchTab('cases');
+      alert('Все данные были успешно сброшены к начальным!');
+    }
+
+    function createExplosionParticles(targetElement, color) {
+      const rect = targetElement.getBoundingClientRect();
+      const x = rect.left + rect.width / 2;
+      const y = rect.top + rect.height / 2;
+
+      for (let i = 0; i < 30; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.style.backgroundColor = color || '#a855f7';
+        
+        const size = Math.random() * 8 + 4;
+        particle.style.width = size + 'px';
+        particle.style.height = size + 'px';
+        
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        
+        document.body.appendChild(particle);
+
+        const angle = Math.random() * Math.PI * 2;
+        const velocity = Math.random() * 6 + 4;
+        const vx = Math.cos(angle) * velocity;
+        const vy = Math.sin(angle) * velocity;
+        
+        let posX = x;
+        let posY = y;
+        let opacity = 1;
+        
+        const animateParticle = () => {
+          posX += vx;
+          posY += vy;
+          opacity -= 0.02;
+          
+          particle.style.left = posX + 'px';
+          particle.style.top = posY + 'px';
+          particle.style.opacity = opacity;
+          
+          if (opacity > 0) {
+            requestAnimationFrame(animateParticle);
+          } else {
+            particle.remove();
+          }
+        };
+        
+        requestAnimationFrame(animateParticle);
+      }
+    }
+
+    function createCelebrationParticles(targetElement) {
+      const colors = ['#f59e0b', '#ec4899', '#06b6d4', '#a855f7', '#10b981'];
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          createExplosionParticles(targetElement, colors[Math.floor(Math.random() * colors.length)]);
+        }, i * 150);
+      }
+    }
+
+    // ----------------------------------------------------
+    // ADMIN ACCESS & AUTHENTICATION
+    // ----------------------------------------------------
+    function triggerAdminAccess() {
+      if (STATE.username !== 'robopo1') {
+        return;
+      }
+      document.getElementById('admin-auth-password').value = '';
+      document.getElementById('admin-auth-error').classList.add('hidden');
+      document.getElementById('admin-auth-modal').classList.remove('hidden');
+    }
+
+    function closeAdminAuthModal() {
+      document.getElementById('admin-auth-modal').classList.add('hidden');
+    }
+
+    function submitAdminPassword() {
+      const pwd = document.getElementById('admin-auth-password').value;
+      if (pwd === 'robopo1') {
+        closeAdminAuthModal();
+        openAdminModal();
+      } else {
+        document.getElementById('admin-auth-error').classList.remove('hidden');
+        AudioSynth.playFail();
+      }
+    }
+
+    // ----------------------------------------------------
+    // ADMIN DASHBOARD MODULE
+    // ----------------------------------------------------
+    function openAdminModal() {
+      document.getElementById('admin-stats-opened').innerText = STATE.stats.totalOpened;
+      const totalVal = STATE.inventory.reduce((sum, i) => sum + i.price, 0);
+      document.getElementById('admin-stats-value').innerText = `${totalVal.toLocaleString('en-US')} B$`;
+      
+      document.getElementById('admin-balance-input').value = STATE.balance;
+      
+      const select = document.getElementById('admin-item-select');
+      select.innerHTML = '';
+      ALL_ITEMS.forEach(item => {
+        const option = document.createElement('option');
+        option.value = item.id;
+        option.innerText = `[${item.caseName.split(' ')[0]}] ${item.name} (${item.price} B$)`;
+        select.appendChild(option);
+      });
+
+      const toggle = document.getElementById('admin-rigging-toggle');
+      toggle.checked = STATE.adminRigging || false;
+      
+      const optionsContainer = document.getElementById('admin-rigging-options');
+      if (STATE.adminRigging) {
+        optionsContainer.classList.remove('opacity-40', 'pointer-events-none');
+      } else {
+        optionsContainer.classList.add('opacity-40', 'pointer-events-none');
+      }
+
+      const radios = document.getElementsByName('admin-rig-mode');
+      radios.forEach(radio => {
+        if (radio.value === (STATE.adminRiggingMode || 'trash')) {
+          radio.checked = true;
+        }
+        
+        radio.onclick = () => {
+          STATE.adminRiggingMode = radio.value;
+          saveState();
+        };
+      });
+
+      // Set Upgrader & Contracts checkbox states
+      document.getElementById('admin-upgrade-rig').checked = STATE.adminUpgradeRig || false;
+      document.getElementById('admin-contracts-rig').checked = STATE.adminContractsRig || false;
+
+      // Render pending withdrawals for admin
+      renderAdminWithdrawals();
+
+      document.getElementById('admin-modal').classList.remove('hidden');
+    }
+
+    // Admin Withdraw functions
+    function renderAdminWithdrawals() {
+      const tbody = document.getElementById('admin-withdrawals-tbody');
+      if (!tbody) return;
+      
+      tbody.innerHTML = '';
+      const pendingItems = STATE.inventory.filter(item => item.status === 'pending');
+
+      if (pendingItems.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="3" class="py-3 text-center text-slate-500 font-bold uppercase tracking-wider text-[9px]">Нет активных заявок на вывод</td>
+          </tr>
+        `;
+        return;
+      }
+
+      pendingItems.forEach(item => {
+        const elapsed = Date.now() - item.withdrawTime;
+        const remainingSecs = Math.max(0, 1800 - Math.floor(elapsed / 1000));
+        const mins = Math.floor(remainingSecs / 60);
+        const secs = remainingSecs % 60;
+        const formattedTime = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+
+        const tr = document.createElement('tr');
+        tr.className = "border-b border-slate-900/50 hover:bg-slate-950/20";
+        tr.innerHTML = `
+          <td class="py-2 text-slate-300 font-mono font-bold">${item.withdrawUsername}</td>
+          <td class="py-2 text-slate-300">
+            <span class="mr-1">${item.icon}</span>
+            <span class="font-bold">${item.name}</span>
+            <span class="text-cyan-400 font-mono font-bold">(${item.price} R$)</span>
+            <div class="text-[8px] text-slate-500 font-mono">Осталось: ${formattedTime}</div>
+          </td>
+          <td class="py-2 text-right">
+            <div class="flex items-center justify-end space-x-1.5">
+              <button onclick="adminConfirmWithdraw('${item.instanceId}')" class="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 text-white font-black rounded text-[9px] transition uppercase">Да</button>
+              <button onclick="adminDeclineWithdraw('${item.instanceId}')" class="px-2 py-1 bg-red-700 hover:bg-red-650 text-white font-black rounded text-[9px] transition uppercase">Нет</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function adminConfirmWithdraw(instanceId) {
+      const idx = STATE.inventory.findIndex(item => item.instanceId === instanceId);
+      if (idx > -1) {
+        const item = STATE.inventory[idx];
+        STATE.inventory.splice(idx, 1);
+        saveState();
+        
+        renderInventoryGrid();
+        updateInventoryStats();
+        renderAdminWithdrawals();
+        
+        alert(`✅ Вывод подтвержден! Предмет "${item.name}" успешно выдан игроку.`);
+      }
+    }
+
+    function adminDeclineWithdraw(instanceId) {
+      const item = STATE.inventory.find(item => item.instanceId === instanceId);
+      if (item) {
+        delete item.status;
+        delete item.withdrawTime;
+        delete item.withdrawUsername;
+        saveState();
+
+        renderInventoryGrid();
+        updateInventoryStats();
+        renderAdminWithdrawals();
+
+        alert(`❌ Вывод отклонен. Предмет "${item.name}" возвращен в инвентарь.`);
+      }
+    }
+
+    // Close
+    function closeAdminModal() {
+      document.getElementById('admin-modal').classList.add('hidden');
+    }
+
+    function adminSetBalance() {
+      const val = parseInt(document.getElementById('admin-balance-input').value);
+      if (isNaN(val) || val < 0) {
+        alert('Пожалуйста, введите корректное положительное число!');
+        return;
+      }
+      STATE.balance = val;
+      saveState();
+      updateBalanceDisplay();
+      openAdminModal();
+    }
+
+    function adminClearInventory() {
+      const check = confirm('Вы уверены, что хотите полностью очистить инвентарь игрока?');
+      if (!check) return;
+      STATE.inventory = [];
+      saveState();
+      
+      renderInventoryGrid();
+      updateInventoryStats();
+      openAdminModal();
+      alert('Инвентарь игрока полностью очищен!');
+    }
+
+    function adminGiveItem() {
+      const itemId = document.getElementById('admin-item-select').value;
+      const item = ALL_ITEMS.find(i => i.id === itemId);
+      if (!item) return;
+
+      const itemWithId = {
+        ...item,
+        instanceId: 'item_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7)
+      };
+
+      STATE.inventory.push(itemWithId);
+      saveState();
+
+      renderInventoryGrid();
+      updateInventoryStats();
+      openAdminModal();
+      alert(`Предмет "${item.name}" успешно добавлен в инвентарь!`);
+    }
+
+    function toggleRigging() {
+      const toggle = document.getElementById('admin-rigging-toggle');
+      STATE.adminRigging = toggle.checked;
+      
+      const optionsContainer = document.getElementById('admin-rigging-options');
+      if (STATE.adminRigging) {
+        optionsContainer.classList.remove('opacity-40', 'pointer-events-none');
+      } else {
+        optionsContainer.classList.add('opacity-40', 'pointer-events-none');
+      }
+      saveState();
+    }
+
+    function adminResetBonusTimers() {
+      STATE.lastDailyBonus = null;
+      STATE.lastFreeCase = null;
+      saveState();
+      updateDailyBonusCountdown();
+      alert('⏰ Таймеры ежедневного бонуса и бесплатного кейса успешно сброшены!');
+    }
+
+    function adminHardReset() {
+      const check = confirm('ВНИМАНИЕ! Это действие полностью очистит LocalStorage и сбросит сайт к первоначальному состоянию. Продолжить?');
+      if (!check) return;
+      
+      localStorage.removeItem('bloxdrop_state_v1');
+      window.location.reload();
+    }
+
+    // ----------------------------------------------------
+    // INITIALIZATION ON LOAD
+    // ----------------------------------------------------
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      AudioSynth.loadPreferences();
+      
+      // Проверяем первый визит пользователя
+      checkFirstVisit();
+      
+      renderCasesGrid();
+      renderInventoryFilters();
+
+      updateProfileDisplay();
+      updateBalanceDisplay();
+
+      updateDailyBonusCountdown();
+      setInterval(updateDailyBonusCountdown, 1000);
+
+      switchTab('cases');
+
+      // Keyboard listener for Admin Modal
+      window.addEventListener('keydown', (e) => {
+        if (e.ctrlKey && e.shiftKey && e.code === 'KeyA') {
+          e.preventDefault();
+          triggerAdminAccess();
+        }
+      });
+
+      // Start Live Drops Simulation
+      startLiveDropsSimulation();
+
+      // Start Withdraw Timers loop
+      startWithdrawTimerLoop();
+    });
+
+  </script>
+</body>
+</html>
