@@ -1010,7 +1010,7 @@
 
     </div>
   </div>
-  <div id="welcome-spin-overlay" class="fixed inset-0 bg-darkBg/95 backdrop-blur-md z-[100] hidden flex items-center justify-center p-4">
+  <div id="welcome-spin-overlay" class="fixed inset-0 bg-darkBg/95 backdrop-blur-md z-[100] hidden items-center justify-center p-4">
     
     <!-- Step 1: The Wheel of Fortune -->
     <div id="welcome-spin-step1" class="flex flex-col items-center space-y-6 text-center">
@@ -1055,7 +1055,7 @@
     </div>
 
     <!-- Step 2: The Login Form (Hidden initially) -->
-    <div id="welcome-spin-step2" class="hidden flex flex-col items-center text-center max-w-sm w-full bg-gradient-to-b from-panelBg to-darkBg border border-borderPurple/70 rounded-3xl p-8 shadow-2xl relative z-10 space-y-6">
+    <div id="welcome-spin-step2" class="hidden flex-col items-center text-center max-w-sm w-full bg-gradient-to-b from-panelBg to-darkBg border border-borderPurple/70 rounded-3xl p-8 shadow-2xl relative z-10 space-y-6">
       <div class="text-6xl animate-bounce select-none">🎁</div>
       
       <div class="space-y-2">
@@ -1890,7 +1890,7 @@
           document.getElementById('welcome-spin-step1').classList.add('hidden');
           const step2 = document.getElementById('welcome-spin-step2');
           step2.classList.remove('hidden');
-          step2.classList.add('block');
+          step2.classList.add('flex');
         }, 1500);
 
       }, 5000);
